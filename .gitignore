@@ -1,0 +1,30 @@
+# Rapports générés (le HTML embarque des miniatures de photos personnelles ; les CSV listent leurs chemins).
+rapport-doublons/
+rapport-rafales/
+doublons.csv
+rafales.csv
+
+# Historique des photos écartées et groupes que tu as choisi de ne pas fusionner (chemins de photos personnelles).
+photos-traitees.txt
+photos-traitees*.bak*
+photos-traitees*.tmp*
+groupes-refuses.txt
+
+# Sauvegardes des collections avant fusion ou réduction des rafales.
+sauvegardes-fusions/
+sauvegardes-rafales/
+
+# Cache des analyses, journaux de diagnostic et mesures produits par le module et les scripts de test.
+cache-analyses.sqlite3*
+diagnostic-*.txt
+mesures-*.json
+
+
+__pycache__/
+
+# Anciennes copies de travail Google Photos, conservées localement après séparation.
+compatibilite-google-staging/
+
+# Catalogue synthétique de recherche de bugs et ses copies isolées des modules.
+sortie/catalogue-compact/
+sortie/catalogue-grand/

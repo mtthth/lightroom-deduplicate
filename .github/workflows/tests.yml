@@ -1,0 +1,28 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # Compilateur MSVC pour construire Lua sous Windows.
+      - uses: ilammy/msvc-dev-cmd@v1
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: '5.3'
+      - name: Suites Lua et Python
+        shell: pwsh
+        run: |
+          $env:LUA = (Get-Command lua).Source
+          $env:PYTHON = (Get-Command python).Source
+          node tests/lancer.mjs
