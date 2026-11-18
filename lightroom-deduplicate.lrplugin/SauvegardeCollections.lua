@@ -134,7 +134,7 @@ function M.sauver(catalogue, decisions, dossier, genre)
     for _, c in ipairs(d.retirees) do ajouter(c) end
   end
   local progression = { isCanceled = function() return false end, setCaption = function() end, setPortionComplete = function() end }
-  local etat = assert(Rapides.lire(catalogue, photos, progression, {}, true), 'Lecture de sauvegarde interrompue')
+  local etat = assert(Rapides.lire(catalogue, photos, progression, {}, true), require('Langue').t('Lecture de sauvegarde interrompue', 'Backup reading interrupted'))
   local function copie(c)
     return { id = c.id, chemin = c.chemin, virtuelle = c.virtuelle, collections = assert(etat[c.photo]).collections }
   end
@@ -149,8 +149,8 @@ function M.sauver(catalogue, decisions, dossier, genre)
   M.lire(contenu) -- Refuse une sauvegarde inexploitable avant toute modification du catalogue.
   local f = assert(io.open(chemin, 'wb'), 'Impossible de créer la sauvegarde des collections')
   local ok, err = f:write(contenu); local ferme = f:close()
-  assert(ok and ferme, err or 'Écriture de sauvegarde incomplète')
-  assert(LrFileUtils.readFile(chemin) == contenu, 'La sauvegarde des collections n’a pas pu être vérifiée')
+  assert(ok and ferme, err or require('Langue').t('Écriture de sauvegarde incomplète', 'Incomplete backup write'))
+  assert(LrFileUtils.readFile(chemin) == contenu, require('Langue').t('La sauvegarde des collections n’a pas pu être vérifiée', 'The collection backup could not be verified'))
   return chemin
 end
 -- Construit une vue limitée aux groupes choisis, sans modifier la sauvegarde d'origine.
@@ -175,7 +175,7 @@ end
 function M.retirerMotCleRafales(sauvegarde, photos, nom)
   if sauvegarde.genre ~= 'rafales' then return end
   for _, p in ipairs(sauvegarde.ordre) do
-    local photo = assert(photos[p.id], 'Photo absente : ' .. p.chemin)
+    local photo = assert(photos[p.id], require('Langue').t('Photo absente : ', 'Missing photo: ') .. p.chemin)
     for _, mot in ipairs(photo:getRawMetadata('keywords') or {}) do
       if mot:getName() == nom then photo:removeKeyword(mot) end
     end
@@ -200,12 +200,12 @@ function M.restaurer(catalogue, sauvegarde, photos, corbeilles)
       if n.ensemble then existante = catalogue:createCollectionSet(n.nom, parent, true)
       else existante = catalogue:createCollection(n.nom, parent, true) end
     end
-    assert(existante, 'Impossible de recréer ' .. n.nom)
+    assert(existante, require('Langue').t('Impossible de recréer ', 'Cannot recreate ') .. n.nom)
     objets[id] = existante
     return existante
   end
   for _, p in ipairs(sauvegarde.ordre) do
-    local photo = assert(photos[p.id], 'Photo absente : ' .. p.chemin)
+    local photo = assert(photos[p.id], require('Langue').t('Photo absente : ', 'Missing photo: ') .. p.chemin)
     local anciens, enRetrait = {}, false
     for _, id in ipairs(p.collections) do
       anciens[id] = true

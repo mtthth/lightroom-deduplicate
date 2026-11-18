@@ -79,7 +79,7 @@ end
 
 local function python()
   local Python = require 'Python'
-  return Python.chemin() or error(Python.MESSAGE, 0)
+  return Python.chemin() or error(Python.message(), 0)
 end
 local function citer(p)
   assert(not p:find('["%%!&|<>^\r\n]'), 'Chemin incompatible avec la commande Python')
@@ -90,7 +90,7 @@ end
 function M.lire(catalogue, photos, progression, corbeilles, complet, diagnostic)
   if progression:isCanceled() then return nil end
   if #photos == 0 then return {} end
-  progression:setCaption('Lecture groupée des collections et publications du catalogue…')
+  progression:setCaption(require('Langue').t('Lecture groupée des collections et publications du catalogue…', 'Batch reading of the catalog’s collections and publications…'))
   local base = LrPathUtils.child(LrPathUtils.getStandardFilePath('temp'),
     'lrdedup-' .. LrMD5.digest(tostring({}) .. os.time()))
   local script, requete, sortie = base .. '.py', base .. '.txt', base .. '.tsv'
@@ -116,9 +116,9 @@ function M.lire(catalogue, photos, progression, corbeilles, complet, diagnostic)
     else code = executer() end
     if progression:isCanceled() then return nil end
     local contenu = LrFileUtils.readFile(sortie)
-    if not contenu then error('La lecture groupée a échoué (code ' .. tostring(code) .. ').', 0) end
+    if not contenu then error(require('Langue').t('La lecture groupée a échoué (code ', 'The batch read failed (code ') .. tostring(code) .. ').', 0) end
     local donnees = M.decoder(contenu, catalogue, photos, corbeilles, complet)
-    if code ~= 0 then error('La lecture groupée a échoué (code ' .. tostring(code) .. ').', 0) end
+    if code ~= 0 then error(require('Langue').t('La lecture groupée a échoué (code ', 'The batch read failed (code ') .. tostring(code) .. ').', 0) end
     if diagnostic then diagnostic:terminer('Snapshot complet : ' .. #photos .. ' photos') end
     progression:setPortionComplete(#photos, #photos)
     return donnees

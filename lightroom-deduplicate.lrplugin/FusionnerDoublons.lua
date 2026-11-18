@@ -64,6 +64,7 @@ local Choix = require 'Choix'
 local Csv = require 'Csv'
 local DerniereAnalyse = require 'DerniereAnalyse'
 local Doublons = require 'Doublons'
+local T = require('Langue').t
 Doublons.reglerDossiers(import('LrPrefs').prefsForPlugin())   -- mots des dossiers mal rangés (Reglages.lua)
 local Epoques = require 'Epoques'
 local Empreintes = dofile(LrPathUtils.child(_PLUGIN.path, 'Empreintes.lua'))
@@ -107,14 +108,16 @@ end
 local function demanderPortee(contexte, portee, magickDispo, reprise)
   local nb = #portee.photos
   if nb < 2 and reprise then
-    local reponse = LrDialogs.confirm('Fusionner les doublons', 'Il faut au moins deux photos pour une nouvelle '
-      .. 'analyse : sélectionnez-en plusieurs, ou affichez un dossier ou une collection.\n\n' .. reprise,
-      'Reprendre la dernière analyse')
+    local reponse = LrDialogs.confirm(T('Fusionner les doublons', 'Merge duplicates'), T('Il faut au moins deux photos pour une nouvelle '
+      .. 'analyse : sélectionnez-en plusieurs, ou affichez un dossier ou une collection.\n\n',
+      'A new analysis needs at least two photos: select several, or show a folder or a collection.\n\n') .. reprise,
+      T('Reprendre la dernière analyse', 'Resume the last analysis'))
     return reponse == 'ok' and { reprise = true } or nil
   end
   if nb < 2 then
-    LrDialogs.message('Fusionner les doublons',
-      'Il faut au moins deux photos : sélectionnez-en plusieurs, ou affichez un dossier ou une collection.', 'info')
+    LrDialogs.message(T('Fusionner les doublons', 'Merge duplicates'),
+      T('Il faut au moins deux photos : sélectionnez-en plusieurs, ou affichez un dossier ou une collection.',
+        'At least two photos are needed: select several, or show a folder or a collection.'), 'info')
     return nil
   end
   local f = LrView.osFactory()
@@ -123,29 +126,36 @@ local function demanderPortee(contexte, portee, magickDispo, reprise)
   proprietes.memesDimensions = magickDispo
   local description
   if portee.genre == 'selection' then
-    description = string.format('Chercher les doublons parmi les %s photos sélectionnées.', nombre(nb))
+    description = string.format(T('Chercher les doublons parmi les %s photos sélectionnées.', 'Look for duplicates among the %s selected photos.'), nombre(nb))
   else
-    description = string.format('Aucune sélection (ou une seule photo) : chercher les doublons parmi les %s photos '
-      .. 'affichées%s.', nombre(nb), portee.nom and (' (« ' .. portee.nom .. ' »)') or '')
+    description = string.format(T('Aucune sélection (ou une seule photo) : chercher les doublons parmi les %s photos '
+      .. 'affichées%s.', 'No selection (or a single photo): look for duplicates among the %s photos shown%s.'), nombre(nb),
+      portee.nom and T(' (« ' .. portee.nom .. ' »)', ' (“' .. portee.nom .. '”)') or '')
   end
-  local texte = description .. '\n\nUne copie n’est trouvée que si ses doublons sont aussi dans ces photos. '
+  local texte = description .. T('\n\nUne copie n’est trouvée que si ses doublons sont aussi dans ces photos. '
     .. 'Les vidéos sont incluses : seules les copies de fichiers identiques sont fusionnées automatiquement. '
     .. 'Pour une version convertie ou recompressée, utilisez la fusion de force. '
     .. 'Rien n’est modifié avant que vous ayez vu le rapport et confirmé.'
     .. '\n\nLes images de mêmes dimensions peuvent aussi être comparées par miniature, même si leur nom et '
-    .. 'leur date diffèrent : plus long à la première analyse, et toujours à vérifier dans le rapport.'
+    .. 'leur date diffèrent : plus long à la première analyse, et toujours à vérifier dans le rapport.',
+    '\n\nA copy is only found if its duplicates are also among these photos. '
+    .. 'Videos are included: only copies of identical files are merged automatically. '
+    .. 'For a converted or recompressed version, use the forced merge. '
+    .. 'Nothing changes until you have seen the report and confirmed.'
+    .. '\n\nImages with the same dimensions can also be compared by thumbnail, even if their name and '
+    .. 'date differ: slower on the first analysis, and always to be checked in the report.')
   if nb > GRANDE_PORTEE then
-    texte = texte .. '\n\nC’est beaucoup de photos : l’analyse peut durer plusieurs minutes.'
+    texte = texte .. T('\n\nC’est beaucoup de photos : l’analyse peut durer plusieurs minutes.', '\n\nThat is a lot of photos: the analysis may take several minutes.')
   end
   local colonne = { bind_to_object = proprietes, spacing = f:control_spacing() }
   colonne[#colonne + 1] = f:static_text { title = texte, width = 480, height_in_lines = nb > GRANDE_PORTEE and 12 or 10 }
   colonne[#colonne + 1] = f:checkbox {
-    title = magickDispo and 'Miniatures dans le rapport HTML (un peu plus long)'
-      or 'Miniatures dans le rapport HTML (ImageMagick est introuvable)',
+    title = magickDispo and T('Miniatures dans le rapport HTML (un peu plus long)', 'Thumbnails in the HTML report (a little slower)')
+      or T('Miniatures dans le rapport HTML (ImageMagick est introuvable)', 'Thumbnails in the HTML report (ImageMagick not found)'),
     value = LrView.bind('miniatures'), enabled = magickDispo,
   }
   colonne[#colonne + 1] = f:checkbox {
-    title = 'Comparer aussi les images de mêmes dimensions (copies renommées ou redatées)',
+    title = T('Comparer aussi les images de mêmes dimensions (copies renommées ou redatées)', 'Also compare images with the same dimensions (renamed or re-dated copies)'),
     value = LrView.bind('memesDimensions'), enabled = magickDispo,
   }
   if reprise then
@@ -153,8 +163,8 @@ local function demanderPortee(contexte, portee, magickDispo, reprise)
     colonne[#colonne + 1] = f:static_text { title = reprise, width = 480, height_in_lines = 4 }
   end
   local reponse = LrDialogs.presentModalDialog {
-    title = 'Fusionner les doublons', contents = f:column(colonne), actionVerb = 'Analyser',
-    otherVerb = reprise and 'Reprendre la dernière analyse' or nil,
+    title = T('Fusionner les doublons', 'Merge duplicates'), contents = f:column(colonne), actionVerb = T('Analyser', 'Analyse'),
+    otherVerb = reprise and T('Reprendre la dernière analyse', 'Resume the last analysis') or nil,
   }
   if reponse == 'other' then return { reprise = true } end
   if reponse ~= 'ok' then return nil end
@@ -169,7 +179,7 @@ local function lireCopies(catalogue, photos, progression, historique)
   local copies = {}
   local complet = parLots(photos, TAILLE_LOT, function(lot, _, fin)
     if progression:isCanceled() then return false end
-    progression:setCaption(string.format('Lecture des photos : %d / %d', fin, #photos))
+    progression:setCaption(string.format(T('Lecture des photos : %d / %d', 'Reading photos: %d / %d'), fin, #photos))
     local brutes = catalogue:batchGetRawMetadata(lot,
       { 'path', 'fileSize', 'dateTimeOriginal', 'isVirtualCopy', 'countVirtualCopies', 'isVideo', 'fileFormat',
         'dimensions' })
@@ -235,7 +245,7 @@ local function chercherGroupes(copies, progression, diagnostic, cache, options)
   local empreintesParChemin = {}
   local chemins = {}
   for _, c in ipairs(copies) do chemins[#chemins + 1] = c.chemin end
-  progression:setCaption(string.format('Contrôle des fichiers et lecture du cache : %d photos', #copies))
+  progression:setCaption(string.format(T('Contrôle des fichiers et lecture du cache : %d photos', 'Checking files and reading the cache: %d photos'), #copies))
   diagnostic:mesurer('cache_empreintes_chargement', { photos = #copies }, function() cache:charger('F', chemins) end)
   local finEmpreintes = diagnostic:debutEtape('empreintes', { photos = #copies })
   local lectures, reutilisees, octets = 0, 0, 0
@@ -244,7 +254,7 @@ local function chercherGroupes(copies, progression, diagnostic, cache, options)
   for fait, c in ipairs(copies) do
     if progression:isCanceled() then return nil end
     local debutProgression = LrDate.currentTime()
-    progression:setCaption(string.format('Empreinte des photos : %d / %d', fait, #copies))
+    progression:setCaption(string.format(T('Empreinte des photos : %d / %d', 'Fingerprinting photos: %d / %d'), fait, #copies))
     progression:setPortionComplete(fait, #copies)
     tempsProgression = tempsProgression + LrDate.currentTime() - debutProgression
     c.octets = c.taille
@@ -292,7 +302,7 @@ local function chercherGroupes(copies, progression, diagnostic, cache, options)
     for _, c in ipairs(groupe) do
       if progression:isCanceled() then return nil end
       fait = fait + 1
-      progression:setCaption(string.format('Vérification complète des gros fichiers : %d / %d', fait, total))
+      progression:setCaption(string.format(T('Vérification complète des gros fichiers : %d / %d', 'Full check of large files: %d / %d'), fait, total))
       progression:setPortionComplete(fait, total)
       local cleChemin = c.chemin:gsub('/', '\\'):lower()
       if completes[cleChemin] == nil then
@@ -373,14 +383,14 @@ local function chercherGroupes(copies, progression, diagnostic, cache, options)
   if magickDispo then
     local cheminsImages = {}
     for _, classe in ipairs(aComparer) do cheminsImages[#cheminsImages + 1] = classe.copies[1].chemin end
-    progression:setCaption(string.format('Lecture du cache des comparaisons : %d images', #aComparer))
+    progression:setCaption(string.format(T('Lecture du cache des comparaisons : %d images', 'Reading the comparison cache: %d images'), #aComparer))
     diagnostic:mesurer('cache_signatures_chargement', { images = #aComparer }, function() cache:charger('S', cheminsImages) end)
   end
   local finComparaison = diagnostic:debutEtape('comparaison_versions_tailles', { images = #aComparer,
     groupes = nbMultiples, parallele = PARALLELE, imagemagick = magickDispo })
   if magickDispo and #aComparer > 0 then
     if not Parallele.pourChaque(aComparer, PARALLELE, function(classe) calculerMiniature(classe, cache) end, progression,
-      'Comparaison des versions de taille différente : %d / %d') then return nil end
+      T('Comparaison des versions de taille différente : %d / %d', 'Comparing versions of different sizes: %d / %d')) then return nil end
   end
   local sansMiniature = 0
   for _, classe in ipairs(aComparer) do
@@ -516,7 +526,7 @@ end
 
 -- Complète les copies des groupes : retouches, notes, mots-clés, collections… et publication.
 local function details(catalogue, groupes, progression, diagnostic)
-  progression:setCaption('Recherche des retouches dans le catalogue…')
+  progression:setCaption(T('Recherche des retouches dans le catalogue…', 'Looking for edits in the catalog…'))
   local retouchees = diagnostic:mesurer('recherche_retouchees_catalogue', {}, function()
     return catalogue:findPhotos { searchDesc = { criteria = 'hasAdjustments', operation = 'isTrue', value = true } }
   end)
@@ -549,7 +559,7 @@ local function details(catalogue, groupes, progression, diagnostic)
   local finMetadonnees = diagnostic:debutEtape('metadonnees_candidates', { photos = #photos, taille_lot = TAILLE_LOT })
   local complet = parLots(photos, TAILLE_LOT, function(lot)
     if progression:isCanceled() then return false end
-    progression:setCaption(string.format('Lecture des métadonnées : %d / %d', fait, #photos))
+    progression:setCaption(string.format(T('Lecture des métadonnées : %d / %d', 'Reading metadata: %d / %d'), fait, #photos))
     local brutes = catalogue:batchGetRawMetadata(lot, { 'rating', 'pickStatus', 'keywords', 'gps',
       'durationInSeconds', 'trimmedDurationInSeconds' })
     local formatees = catalogue:batchGetFormattedMetadata(lot, Doublons.CHAMPS_TEXTE)
@@ -581,7 +591,7 @@ local function details(catalogue, groupes, progression, diagnostic)
       end
       fait = fait + 1
       if fait % 200 == 0 then
-        progression:setCaption(string.format('Lecture des métadonnées : %d / %d', fait, #photos))
+        progression:setCaption(string.format(T('Lecture des métadonnées : %d / %d', 'Reading metadata: %d / %d'), fait, #photos))
         LrTasks.yield()
       end
     end
@@ -642,16 +652,16 @@ local function fusionner(catalogue, decisions, progression, diagnostic)
   end)
   local corbeille
   local historiqueOk, erreurHistorique = diagnostic:mesurer('ecriture_catalogue_et_historique', { groupes = #decisions }, function()
-    local ok, resultat, erreur = LrTasks.pcall(Annulation.action, catalogue, HISTORIQUE, 'Fusionner les doublons',
+    local ok, resultat, erreur = LrTasks.pcall(Annulation.action, catalogue, HISTORIQUE, T('Fusionner les doublons', 'Merge duplicates'),
       { retablir = gardees, type = 'doublon', photos = photos, temoin = decisions[1].garde.photo }, function()
       corbeille = catalogue:createCollection(COLLECTION_DOUBLONS, nil, true)
       for i, d in ipairs(decisions) do
-        if progression:isCanceled() then error('Fusion annulée : aucune modification du catalogue n’a été conservée.', 0) end
+        if progression:isCanceled() then error(T('Fusion annulée : aucune modification du catalogue n’a été conservée.', 'Merge cancelled: no change to the catalog was kept.'), 0) end
         fusionnerGroupe(d, corbeille)
         for _, e in ipairs(d.virtuelles) do CopiesVirtuelles.appliquer(e, corbeille) end
         progression:setPortionComplete(i, #decisions)
         if i % LOT_ECRITURE == 0 or i == #decisions then
-          progression:setCaption(string.format('Fusion des doublons : %d / %d groupes', i, #decisions))
+          progression:setCaption(string.format(T('Fusion des doublons : %d / %d groupes', 'Merging duplicates: %d / %d groups'), i, #decisions))
           LrTasks.yield()
         end
       end
@@ -663,25 +673,27 @@ local function fusionner(catalogue, decisions, progression, diagnostic)
   -- barre bloquée à 1 / 570 pendant plus de 3 minutes). On lit donc une seule fois le contenu des
   -- collections « à retirer » et on vérifie qu'aucune photo gardée n'y figure.
   diagnostic:mesurer('verification_photos_gardees', { groupes = #decisions }, function()
-    progression:setCaption('Vérification des photos gardées…')
+    progression:setCaption(T('Vérification des photos gardées…', 'Checking kept photos…'))
     -- Lecture unique, sans avancement mesurable : la barre pleine passe pour une barre figée.
     if progression.setIndeterminate then progression:setIndeterminate() end
     LrTasks.yield()   -- sans cela, la légende ne s'affiche pas avant que la lecture du catalogue ne gèle l'interface
     local aRetirer = Catalogue.lectureGroupee(catalogue, function()
       return (Catalogue.photosDesCollections(catalogue, { Doublons.COLLECTION, Rafales.COLLECTION }, true))
-    end, 'Le catalogue est occupé : la vérification des photos gardées a été interrompue après 5 secondes. '
-      .. 'La fusion est déjà appliquée (Ctrl+Z l’annule).')
+    end, T('Le catalogue est occupé : la vérification des photos gardées a été interrompue après 5 secondes. '
+      .. 'La fusion est déjà appliquée (Ctrl+Z l’annule).', 'The catalog is busy: checking the kept photos stopped after 5 seconds. '
+      .. 'The merge is already applied (Ctrl+Z undoes it).'))
     for _, d in ipairs(decisions) do
       if aRetirer[d.garde.photo.localIdentifier] then
-        error('La photo gardée est encore dans « ' .. Doublons.COLLECTION .. ' » ou « ' .. Rafales.COLLECTION
-          .. ' ». Ne retirez aucune photo du catalogue.', 0)
+        error(T('La photo gardée est encore dans « ' .. Doublons.COLLECTION .. ' » ou « ' .. Rafales.COLLECTION
+          .. ' ». Ne retirez aucune photo du catalogue.', 'The kept photo is still in “' .. Doublons.COLLECTION .. '” or “'
+          .. Rafales.COLLECTION .. '”. Do not remove any photo from the catalog.'), 0)
       end
     end
   end)
   if historiqueOk then
     local historique = Historique.lire(HISTORIQUE)
     for _, chemin in ipairs(gardees) do
-      if Historique.contient(historique, chemin) then error('Une photo gardée reste exclue dans l’historique.', 0) end
+      if Historique.contient(historique, chemin) then error(T('Une photo gardée reste exclue dans l’historique.', 'A kept photo is still excluded in the history.'), 0) end
     end
   end
   local ecarts = diagnostic:mesurer('copies_virtuelles_verification', { copies = #virtuelles }, function()
@@ -786,11 +798,11 @@ end
 local function memoriserRefus(decisions)
   local nouveau = not LrFileUtils.exists(REFUS)
   local f = io.open(REFUS, 'ab')
-  if not f then error('Impossible d’écrire ' .. REFUS .. ' (fichier ouvert ailleurs ?). Aucune modification du catalogue.', 0) end
+  if not f then error(T('Impossible d’écrire ' .. REFUS .. ' (fichier ouvert ailleurs ?). Aucune modification du catalogue.', 'Cannot write ' .. REFUS .. ' (file open elsewhere?). No change to the catalog.'), 0) end
   local ok, erreur = f:write((nouveau and Choix.ENTETE or '') .. Choix.lignesRefus(dateDuRapport(), decisions))
   local fermeOk, erreurFermeture = f:close()
   if not ok or not fermeOk then
-    error('Impossible d’écrire ' .. REFUS .. ' : ' .. tostring(erreur or erreurFermeture) .. '. Aucune modification du catalogue.', 0)
+    error(T('Impossible d’écrire ', 'Cannot write ') .. REFUS .. ' : ' .. tostring(erreur or erreurFermeture) .. T('. Aucune modification du catalogue.', '. No change to the catalog.'), 0)
   end
 end
 
@@ -805,31 +817,35 @@ local function decrireChoix(plan, nbProposes)
   local nbRetirees = 0
   for _, d in ipairs(plan.aFusionner) do nbRetirees = nbRetirees + #d.retirees end
   local absorbes = #(plan.absorbes or {})
-  local lignes = { string.format('%d groupes proposés − %d que vous ne fusionnez pas%s + %d fusionnés de force = %d groupes '
-    .. 'à fusionner (%d copies mises dans « %s »).', nbProposes, #plan.exclues,
-    absorbes > 0 and string.format(' − %d repris dans un groupe forcé', absorbes) or '', #plan.forcees, #plan.aFusionner,
+  local lignes = { string.format(T('%d groupes proposés − %d que vous ne fusionnez pas%s + %d fusionnés de force = %d groupes '
+    .. 'à fusionner (%d copies mises dans « %s »).', '%d proposed groups − %d you do not merge%s + %d force-merged = %d groups '
+    .. 'to merge (%d copies put in “%s”).'), nbProposes, #plan.exclues,
+    absorbes > 0 and string.format(T(' − %d repris dans un groupe forcé', ' − %d taken into a forced group'), absorbes) or '', #plan.forcees, #plan.aFusionner,
     nbRetirees, COLLECTION_DOUBLONS) }
   if #plan.exclues > 0 then
     local numeros = {}
     for i, d in ipairs(plan.exclues) do
       if i <= NUMEROS_AFFICHES then numeros[i] = d.numero end
     end
-    local suite = #plan.exclues > NUMEROS_AFFICHES and string.format(' et %d autres', #plan.exclues - NUMEROS_AFFICHES) or ''
-    lignes[#lignes + 1] = '\nNe pas fusionner : groupes ' .. table.concat(numeros, ', ') .. suite .. '. Ce choix est mémorisé dans '
+    local suite = #plan.exclues > NUMEROS_AFFICHES and string.format(T(' et %d autres', ' and %d more'), #plan.exclues - NUMEROS_AFFICHES) or ''
+    lignes[#lignes + 1] = T('\nNe pas fusionner : groupes ', '\nDo not merge: groups ') .. table.concat(numeros, ', ') .. suite
+      .. T('. Ce choix est mémorisé dans '
       .. 'groupes-refuses.txt : ces fichiers resteront « à vérifier » aux prochaines analyses (supprimez leur ligne, '
-      .. 'ou fusionnez-les de force, pour revenir dessus).'
+      .. 'ou fusionnez-les de force, pour revenir dessus).', '. This choice is saved in '
+      .. 'groupes-refuses.txt: these files will stay “to check” in later analyses (delete their line, '
+      .. 'or force-merge them, to change your mind).')
   end
   local nonDetailles, avertissementsCaches = 0, 0
   for i, d in ipairs(plan.forcees) do
     local avertissements = Doublons.avertissements(d, true)
     for _, c in ipairs(d.retirees) do
       if (c.pixels or 0) > (d.garde.pixels or 0) then
-        avertissements[#avertissements + 1] = nomFichier(c.chemin) .. ' est une image plus grande que la copie gardée'
+        avertissements[#avertissements + 1] = nomFichier(c.chemin) .. T(' est une image plus grande que la copie gardée', ' is a larger image than the kept copy')
       end
     end
     for _, a in ipairs(Doublons.annoncesVirtuelles(d)) do avertissements[#avertissements + 1] = a end
     if i <= DETAIL_FORCES then
-      lignes[#lignes + 1] = string.format('\nGroupe %d fusionné de force (%s).\nCopie gardée : %s', d.numero, d.forcee, d.garde.chemin)
+      lignes[#lignes + 1] = string.format(T('\nGroupe %d fusionné de force (%s).\nCopie gardée : %s', '\nGroup %d force-merged (%s).\nKept copy: %s'), d.numero, d.forcee, d.garde.chemin)
       for _, a in ipairs(avertissements) do lignes[#lignes + 1] = '• ' .. a end
     else
       nonDetailles = nonDetailles + 1
@@ -837,17 +853,25 @@ local function decrireChoix(plan, nbProposes)
     end
   end
   if nonDetailles > 0 then
-    lignes[#lignes + 1] = string.format('\n… et %d autres groupes fusionnés de force, non détaillés ici (%d remarques '
+    lignes[#lignes + 1] = string.format(T('\n… et %d autres groupes fusionnés de force, non détaillés ici (%d remarques '
       .. 'de plus, du même genre). Le rapport montre chaque groupe ; doublons.csv en garde le détail dès que vous confirmez.',
+      '\n… and %d more force-merged groups, not detailed here (%d more remarks of the same kind). The report shows '
+      .. 'each group; doublons.csv keeps the details once you confirm.'),
       nonDetailles, avertissementsCaches)
   end
   if #plan.forcees > 0 then
-    lignes[#lignes + 1] = '\nLes réglages de développement et appartenances publiées restent sur les copies écartées tant '
+    lignes[#lignes + 1] = T('\nLes réglages de développement et appartenances publiées restent sur les copies écartées tant '
       .. 'qu’elles sont au catalogue. Leur retrait ultérieur fera perdre ces éléments.'
       .. '\nLes copies virtuelles des copies écartées (hors vidéos) sont recréées sur la copie gardée, avec leur nom, leurs '
       .. 'réglages, métadonnées et collections, mais sans leur historique ni leurs instantanés. Les anciennes rejoignent « '
       .. COLLECTION_DOUBLONS .. ' ». La copie gardée doit être affichée dans la grille : le module la sélectionne pour '
-      .. 'créer ses copies virtuelles.'
+      .. 'créer ses copies virtuelles.',
+      '\nDevelop settings and published memberships stay on the discarded copies as long as they are in the catalog. '
+      .. 'Removing them later will lose these.'
+      .. '\nVirtual copies of the discarded copies (except videos) are recreated on the kept copy, with their name, '
+      .. 'settings, metadata and collections, but without their history or snapshots. The old ones join “'
+      .. COLLECTION_DOUBLONS .. '”. The kept copy must be shown in the grid: the plug-in selects it to create its '
+      .. 'virtual copies.')
   end
   return table.concat(lignes, '\n')
 end
@@ -855,7 +879,7 @@ end
 local function ecrireRapportHtml(modele)
   LrFileUtils.createAllDirectories(DOSSIER_RAPPORT)
   local f = io.open(RAPPORT_HTML, 'wb')
-  if not f then error('Impossible d’écrire ' .. RAPPORT_HTML .. ' (page ouverte dans un autre programme ?)', 0) end
+  if not f then error(T('Impossible d’écrire ' .. RAPPORT_HTML .. ' (page ouverte dans un autre programme ?)', 'Cannot write ' .. RAPPORT_HTML .. ' (page open in another program?)'), 0) end
   f:write(RapportHtml.page(modele))
   f:close()
 end
@@ -931,13 +955,14 @@ local function preparerDecisions(groupes, differents, diagnostic)
 end
 
 local function decrirePortee(portee)
-  if portee.genre == 'selection' then return string.format('les %s photos sélectionnées', nombre(#portee.photos)) end
-  return string.format('les %s photos affichées%s', nombre(#portee.photos), portee.nom and (' (« ' .. portee.nom .. ' »)') or '')
+  if portee.genre == 'selection' then return string.format(T('les %s photos sélectionnées', 'the %s selected photos'), nombre(#portee.photos)) end
+  return string.format(T('les %s photos affichées%s', 'the %s photos shown%s'), nombre(#portee.photos),
+    portee.nom and T(' (« ' .. portee.nom .. ' »)', ' (“' .. portee.nom .. '”)') or '')
 end
 
 LrTasks.startAsyncTask(function()
   LrFunctionContext.callWithContext('fusionnerDoublons', function(contexte)
-    local etape = 'choix de la portée'
+    local etape = T('choix de la portée', 'choosing the scope')
     local diagnostic, issue, finAnalyse, cache
     contexte:addCleanupHandler(function() if diagnostic then diagnostic:fin(issue or 'interrompu') end end)
     local ok, erreur = LrTasks.pcall(function()
@@ -946,15 +971,17 @@ LrTasks.startAsyncTask(function()
       local portee = diagnostic:mesurer('lecture_portee', {}, function() return Catalogue.portee(catalogue) end)
       diagnostic:compteurs('portee', { photos = #portee.photos, genre = portee.genre, source = portee.nom })
       local memoire = DerniereAnalyse.pour(catalogue:getPath())
-      local reprise = memoire and string.format('L’analyse de %s (%s, analyse %s) est encore en mémoire. « Reprendre '
+      local reprise = memoire and string.format(T('L’analyse de %s (%s, analyse %s) est encore en mémoire. « Reprendre '
         .. 'la dernière analyse » rouvre son rapport et la saisie du code sans tout recomparer : les métadonnées et '
-        .. 'collections sont relues, et les fichiers revérifiés avant fusion.', memoire.portee, memoire.date,
+        .. 'collections sont relues, et les fichiers revérifiés avant fusion.', 'The analysis of %s (%s, analysis %s) is still '
+        .. 'in memory. “Resume the last analysis” reopens its report and the code entry without comparing everything again: '
+        .. 'metadata and collections are re-read, and files re-checked before merging.'), memoire.portee, memoire.date,
         memoire.identifiant) or nil
       local options = diagnostic:mesurer('attente_validation_portee', {}, function()
         return demanderPortee(contexte, portee, Vignettes.magick() ~= nil, reprise)
       end)
       if not options then issue = 'annule'; return end
-      local progression = LrProgressScope { title = 'Recherche des doublons', functionContext = contexte }
+      local progression = LrProgressScope { title = T('Recherche des doublons', 'Finding duplicates'), functionContext = contexte }
       diagnostic.progression = progression
       cache = CacheAnalyses.ouvrir(DOSSIER_PROJET, Vignettes.magick(), diagnostic)
       -- Analyse complète. Renvoie l'état utile à la saisie du code, ou nil (annulation, rien à fusionner).
@@ -962,7 +989,7 @@ LrTasks.startAsyncTask(function()
         finAnalyse = diagnostic:debutEtape('analyse_totale', { photos_portee = #portee.photos, miniatures = options.miniatures,
           memes_dimensions = options.memesDimensions })
 
-        etape = 'lecture des photos'
+        etape = T('lecture des photos', 'reading photos')
         local historique = diagnostic:mesurer('synchronisation_historique', {}, function()
           Annulation.synchroniser(catalogue, HISTORIQUE)
           return Historique.lire(HISTORIQUE)
@@ -977,17 +1004,17 @@ LrTasks.startAsyncTask(function()
         end
         diagnostic:compteurs('photos_admises', { photos = #copies, ignorees = #portee.photos - #copies,
           deja_ecartees = nbDejaEcartees })
-        etape = 'comparaison des fichiers'
+        etape = T('comparaison des fichiers', 'comparing files')
         local trouves = chercherGroupes(copies, progression, diagnostic, cache, options)
         if not trouves then return end
         local groupes, differents = trouves.groupes, trouves.differents
         if #groupes == 0 and #differents == 0 then
           finAnalyse('ok', { groupes = 0 }); issue = 'aucun_doublon'
           progression:done()
-          LrDialogs.message('Doublons', string.format('Aucun fichier en double parmi %s.', decrirePortee(portee)), 'info')
+          LrDialogs.message(T('Doublons', 'Duplicates'), string.format(T('Aucun fichier en double parmi %s.', 'No duplicate files among %s.'), decrirePortee(portee)), 'info')
           return
         end
-        etape = 'lecture des métadonnées'
+        etape = T('lecture des métadonnées', 'reading metadata')
         local aLire = {}
         for _, g in ipairs(groupes) do aLire[#aLire + 1] = g end
         for _, g in ipairs(differents) do aLire[#aLire + 1] = g end
@@ -1000,50 +1027,57 @@ LrTasks.startAsyncTask(function()
         if #decisions == 0 then
           finAnalyse('ok', { groupes = 0, deja_fusionnes = nbDejaFusionnes }); issue = 'aucun_doublon'
           progression:done()
-          LrDialogs.message('Doublons', string.format('Aucun fichier en double à fusionner parmi %s.', decrirePortee(portee))
-            .. string.format('\n%d groupes ont déjà été fusionnés : leurs copies en trop sont déjà écartées.', nbDejaFusionnes),
+          LrDialogs.message(T('Doublons', 'Duplicates'), string.format(T('Aucun fichier en double à fusionner parmi %s.', 'No duplicate files to merge among %s.'), decrirePortee(portee))
+            .. string.format(T('\n%d groupes ont déjà été fusionnés : leurs copies en trop sont déjà écartées.', '\n%d groups were already merged: their extra copies are already set aside.'), nbDejaFusionnes),
             'info')
           return
         end
 
         -- Le rapport de l'analyse précédente va être remplacé : elle ne peut plus être reprise.
         DerniereAnalyse.oublier()
-        etape = 'miniatures du rapport'
+        etape = T('miniatures du rapport', 'report thumbnails')
         if options.miniatures and not genererApercus(decisions, progression, diagnostic) then return end
 
         -- Remarques du rapport et du bilan.
         local remarques = {}
         if trouves.magickAbsent then
-          remarques[#remarques + 1] = 'ImageMagick est introuvable : les copies réduites ou recompressées n’ont pas '
-            .. 'été cherchées (seuls les fichiers de même image sont fusionnés).'
+          remarques[#remarques + 1] = T('ImageMagick est introuvable : les copies réduites ou recompressées n’ont pas '
+            .. 'été cherchées (seuls les fichiers de même image sont fusionnés).', 'ImageMagick not found: downsized or '
+            .. 'recompressed copies were not looked for (only files with the same image are merged).')
         end
         if trouves.sansMiniature > 0 then
-          remarques[#remarques + 1] = string.format('%d images n’ont pas pu être comparées par ImageMagick '
-            .. '(format non lu) : elles sont conservées.', trouves.sansMiniature)
+          remarques[#remarques + 1] = string.format(T('%d images n’ont pas pu être comparées par ImageMagick '
+            .. '(format non lu) : elles sont conservées.', '%d images could not be compared by ImageMagick '
+            .. '(unreadable format): they are kept.'), trouves.sansMiniature)
         end
         if trouves.illisibles > 0 then
-          remarques[#remarques + 1] = string.format('%d fichiers illisibles (absents ou hors ligne) n’ont pas pu être comparés.',
+          remarques[#remarques + 1] = string.format(T('%d fichiers illisibles (absents ou hors ligne) n’ont pas pu être comparés.', '%d unreadable files (missing or offline) could not be compared.'),
             trouves.illisibles)
         end
         if nbDejaFusionnes > 0 then
-          remarques[#remarques + 1] = string.format('%d groupes déjà fusionnés ne sont pas repris : leurs copies en trop '
-            .. 'sont déjà écartées et il n’y a plus rien à transférer.', nbDejaFusionnes)
+          remarques[#remarques + 1] = string.format(T('%d groupes déjà fusionnés ne sont pas repris : leurs copies en trop '
+            .. 'sont déjà écartées et il n’y a plus rien à transférer.', '%d already merged groups are not taken again: their '
+            .. 'extra copies are already set aside and there is nothing left to transfer.'), nbDejaFusionnes)
         end
-        if not options.miniatures then remarques[#remarques + 1] = 'Rapport sans miniatures.' end
+        -- Le rapport signale aussi l'absence de miniatures ; la boîte de dialogue, non.
+        local notesRapport = {}
+        for i, r in ipairs(remarques) do notesRapport[i] = r end
+        if not options.miniatures then notesRapport[#notesRapport + 1] = T('Rapport sans miniatures.', 'Report without thumbnails.') end
 
-        etape = 'écriture du rapport'
+        etape = T('écriture du rapport', 'writing the report')
         local finRapport = diagnostic:debutEtape('ecriture_rapports', { groupes = #decisions, distincts = #differents })
         ecrireRapportCsv(decisions)
         ecrireRapportHtml({
           portee = decrirePortee(portee), date = dateDuRapport(), collection = COLLECTION_DOUBLONS, identifiant = identifiant,
-          decisions = decisions, notes = remarques,
+          decisions = decisions, notes = notesRapport,
           vignette = function(c) return c.avecApercu and ('vignettes/' .. c.fichierApercu) or nil end,
         })
         finRapport('ok')
         finAnalyse('ok', { groupes = #decisions, photos_a_ecarter = nbRetirees })
         progression:done()
 
-        local message = string.format(
+        local phrasePortee = decrirePortee(portee)
+        local message = string.format(T(
           '%s : %d groupes de copies d’une même photo, %d copies en trop%s.\n\n'
           .. 'Pour chaque groupe, le rapport montre la copie gardée (la plus grande image ; à image identique, la '
           .. 'retouchée, puis la mieux rangée), ce qui est retiré, et ce qui change dans les collections et les '
@@ -1051,30 +1085,41 @@ LrTasks.startAsyncTask(function()
           .. 'tant que vous ne cliquez pas sur « Fusionner ». Les copies en trop sont rassemblées dans la collection '
           .. '« %s », à retirer ensuite du catalogue. Leurs chemins et dates sont mémorisés dans %s pour que '
           .. '« Recréer les albums » continue de les ignorer après vidage de la collection.',
-          decrirePortee(portee):gsub('^les', 'Parmi les'), #aFusionner, nbRetirees,
-          nbReduites > 0 and string.format(' (dont %d copies réduites ou recompressées)', nbReduites) or '',
+          '%s: %d groups of copies of the same photo, %d extra copies%s.\n\n'
+          .. 'For each group, the report shows the kept copy (the largest image; for identical images, the edited '
+          .. 'one, then the best filed), what is removed, and what changes in collections and metadata. Click '
+          .. '“Open the report” (it opens in your browser): nothing changes until you click “Merge”. The extra copies '
+          .. 'are gathered in the “%s” collection, to be removed from the catalog afterwards. Their paths and dates are '
+          .. 'saved in %s so that “Recreate albums” keeps ignoring them once the collection is emptied.'),
+          T((phrasePortee:gsub('^les', 'Parmi les')), 'Among ' .. phrasePortee), #aFusionner, nbRetirees,
+          nbReduites > 0 and string.format(T(' (dont %d copies réduites ou recompressées)', ' (including %d downsized or recompressed copies)'), nbReduites) or '',
           COLLECTION_DOUBLONS, HISTORIQUE)
         if nbAVerifier > 0 then
-          message = message .. string.format('\n\n%d groupes à vérifier (plusieurs copies retouchées, version '
-            .. '« _filtered » ou « -Modifier », copie réduite retouchée…%s) restent tels quels.', nbAVerifier,
-            nbRefuses > 0 and string.format(', dont %d que vous avez choisi de ne pas fusionner', nbRefuses) or '')
+          message = message .. string.format(T('\n\n%d groupes à vérifier (plusieurs copies retouchées, version '
+            .. '« _filtered » ou « -Modifier », copie réduite retouchée…%s) restent tels quels.', '\n\n%d groups to check '
+            .. '(several edited copies, “_filtered” or “-Edit” version, edited downsized copy…%s) are left as they are.'), nbAVerifier,
+            nbRefuses > 0 and string.format(T(', dont %d que vous avez choisi de ne pas fusionner', ', including %d you chose not to merge'), nbRefuses) or '')
         end
         if nbVersions > 0 then
-          message = message .. string.format('\n%d groupes de photos de même nom d’origine et même date ont des '
+          message = message .. string.format(T('\n%d groupes de photos de même nom d’origine et même date ont des '
             .. 'versions distinctes (image différente : retouche, recadrage…). Elles sont conservées, sauf fusion forcée '
-            .. 'dans le rapport.', nbVersions)
+            .. 'dans le rapport.', '\n%d groups of photos with the same original name and date have distinct versions '
+            .. '(different image: edit, exposure…). They are kept, unless force-merged in the report.'), nbVersions)
         end
         for _, r in ipairs(remarques) do
-          if r ~= 'Rapport sans miniatures.' then message = message .. '\n' .. r end
+          message = message .. '\n' .. r
         end
-        message = message .. '\n\nRapport : ' .. RAPPORT_HTML .. ' (analyse ' .. identifiant .. ')'
-          .. '\nUne sauvegarde texte des collections d’origine sera créée avant fusion dans sauvegardes-fusions.'
+        message = message .. T('\n\nRapport : ', '\n\nReport: ') .. RAPPORT_HTML .. T(' (analyse ', ' (analysis ') .. identifiant .. ')'
+          .. T('\nUne sauvegarde texte des collections d’origine sera créée avant fusion dans sauvegardes-fusions.',
+            '\nA text backup of the original collections will be written to sauvegardes-fusions before merging.')
         -- Sans groupe proposé ni groupe « à vérifier », il n'y a rien à choisir : la boîte se ferme simplement.
         local choisissable = #aFusionner > 0 or nbAVerifier > 0 or nbVersions > 0
         if choisissable then
-          message = message .. '\n\nDans le rapport, cochez « Ne pas fusionner » pour écarter un groupe, ou « Fusionner de '
+          message = message .. T('\n\nDans le rapport, cochez « Ne pas fusionner » pour écarter un groupe, ou « Fusionner de '
             .. 'force » pour un groupe à vérifier, puis cliquez sur « Copier le code » et collez-le ci-dessous. '
-            .. 'Sans code, le rapport est appliqué tel quel.'
+            .. 'Sans code, le rapport est appliqué tel quel.', '\n\nIn the report, tick “Do not merge” to leave a group out, '
+            .. 'or “Force merge” for a group to check, then click “Copy the code” and paste it below. '
+            .. 'Without a code, the report is applied as it is.')
         end
         DerniereAnalyse.memoriser { catalogue = catalogue:getPath(), date = dateDuRapport(), portee = decrirePortee(portee),
           identifiant = identifiant, groupes = groupes, differents = differents, message = message,
@@ -1088,7 +1133,7 @@ LrTasks.startAsyncTask(function()
       -- change (copie gardée, retouche, refus, groupe déjà fusionné…), le rapport ne correspond plus : refus.
       local function reprendre()
         finAnalyse = diagnostic:debutEtape('reprise_analyse', { analyse = memoire.identifiant })
-        etape = 'relecture des photos de l’analyse précédente'
+        etape = T('relecture des photos de l’analyse précédente', 're-reading the photos of the previous analysis')
         local historique = diagnostic:mesurer('synchronisation_historique', {}, function()
           Annulation.synchroniser(catalogue, HISTORIQUE)
           return Historique.lire(HISTORIQUE)
@@ -1106,7 +1151,7 @@ LrTasks.startAsyncTask(function()
         local lu, complet = LrTasks.pcall(function()
           return parLots(photos, TAILLE_LOT, function(lot, _, fin)
             if progression:isCanceled() then return false end
-            progression:setCaption(string.format('Relecture des photos : %d / %d', fin, #photos))
+            progression:setCaption(string.format(T('Relecture des photos : %d / %d', 'Re-reading photos: %d / %d'), fin, #photos))
             local brutes = catalogue:batchGetRawMetadata(lot, { 'path', 'countVirtualCopies' })
             for _, photo in ipairs(lot) do
               local b = brutes[photo] or {}
@@ -1122,7 +1167,7 @@ LrTasks.startAsyncTask(function()
         if not lu then perimee = true end
         local r
         if not perimee then
-          etape = 'relecture des métadonnées'
+          etape = T('relecture des métadonnées', 're-reading metadata')
           if not details(catalogue, aLire, progression, diagnostic) then return nil end
           r = preparerDecisions(memoire.groupes, memoire.differents, diagnostic)
           perimee = r.identifiant ~= memoire.identifiant
@@ -1131,15 +1176,17 @@ LrTasks.startAsyncTask(function()
         if perimee then
           DerniereAnalyse.oublier()
           finAnalyse('perimee'); issue = 'reprise_perimee'
-          LrDialogs.message('Analyse à relancer', 'Le catalogue a changé depuis l’analyse ' .. memoire.identifiant
+          LrDialogs.message(T('Analyse à relancer', 'Analysis to run again'), T('Le catalogue a changé depuis l’analyse ' .. memoire.identifiant
             .. ' (photo déplacée ou retirée, retouche, copie gardée, groupe refusé ou déjà fusionné) : son rapport ne '
-            .. 'correspond plus. Relancez l’analyse.\n\nRien n’a été modifié.', 'warning')
+            .. 'correspond plus. Relancez l’analyse.\n\nRien n’a été modifié.', 'The catalog has changed since analysis '
+            .. memoire.identifiant .. ' (photo moved or removed, edit, kept copy, refused or already merged group): its '
+            .. 'report no longer matches. Run the analysis again.\n\nNothing has been changed.'), 'warning')
           return nil
         end
         finAnalyse('ok', { groupes = #r.decisions, reprise = true })
         return { decisions = r.decisions, aFusionner = r.aFusionner, identifiant = r.identifiant,
-          message = 'Reprise de l’analyse ' .. memoire.identifiant .. ' (' .. memoire.date .. ') : métadonnées et '
-            .. 'collections relues.\n\n' .. memoire.message,
+          message = T('Reprise de l’analyse ', 'Resuming analysis ') .. memoire.identifiant .. ' (' .. memoire.date .. T(') : métadonnées et '
+            .. 'collections relues.\n\n', '): metadata and collections re-read.\n\n') .. memoire.message,
           choisissable = memoire.choisissable }
       end
 
@@ -1162,46 +1209,47 @@ LrTasks.startAsyncTask(function()
             f:static_text { title = message, width = 640, height_in_lines = 45 },
           },
           f:push_button {
-            title = 'Ouvrir le rapport',
+            title = T('Ouvrir le rapport', 'Open the report'),
             action = function() LrHttp.openUrlInBrowser(RapportHtml.urlFichier(RAPPORT_HTML)) end,
           },
         }
         if choisissable then
-          colonne[#colonne + 1] = f:static_text { title = 'Code de vos choix (vide : le rapport tel quel) :' }
+          colonne[#colonne + 1] = f:static_text { title = T('Code de vos choix (vide : le rapport tel quel) :', 'Code of your choices (empty: the report as it is):') }
           colonne[#colonne + 1] = f:edit_field { value = LrView.bind('code'), width = 680, immediate = true }
         end
         local finAttente = diagnostic:debutEtape('attente_decision_utilisateur')
         local choix = LrDialogs.presentModalDialog {
-          title = 'Résultat de la recherche des doublons',
+          title = T('Résultat de la recherche des doublons', 'Duplicate search results'),
           contents = f:column(colonne),
-          actionVerb = choisissable and 'Fusionner' or 'Fermer',
-          cancelVerb = 'Fermer sans fusionner',
+          actionVerb = choisissable and T('Fusionner', 'Merge') or T('Fermer', 'Close'),
+          cancelVerb = T('Fermer sans fusionner', 'Close without merging'),
         }
         finAttente('ok', { choix = choix })
         if choix ~= 'ok' or not choisissable then issue = 'rapport_seul'; return end
 
         local lus, erreurCode = Choix.lireCode(proprietes.code, decisions, identifiant)
         if not lus then
-          LrDialogs.message('Code des choix refusé', erreurCode .. '\n\nRien n’a été modifié.', 'warning')
+          LrDialogs.message(T('Code des choix refusé', 'Choice code rejected'), erreurCode .. T('\n\nRien n’a été modifié.', '\n\nNothing has been changed.'), 'warning')
         else
           plan = Choix.appliquer(decisions, lus)
           diagnostic:compteurs('choix_rapport', { exclus = #plan.exclues, forces = #plan.forcees, a_fusionner = #plan.aFusionner })
           if #plan.exclues + #plan.forcees == 0 then
             if #plan.aFusionner > 0 then break end
-            LrDialogs.message('Rien à fusionner', 'Aucun groupe n’est proposé à la fusion. Pour fusionner un groupe '
-              .. '« à vérifier », cochez « Fusionner de force » dans le rapport, puis collez le code.', 'info')
+            LrDialogs.message(T('Rien à fusionner', 'Nothing to merge'), T('Aucun groupe n’est proposé à la fusion. Pour fusionner un groupe '
+              .. '« à vérifier », cochez « Fusionner de force » dans le rapport, puis collez le code.', 'No group is proposed '
+              .. 'for merging. To merge a group “to check”, tick “Force merge” in the report, then paste the code.'), 'info')
           else
             local texte = decrireChoix(plan, #aFusionner)
             local _, nbLignes = texte:gsub('\n', '')
             local finConfirmation = diagnostic:debutEtape('attente_confirmation_choix')
             local reponse = LrDialogs.presentModalDialog {
-              title = 'Confirmer vos choix',
+              title = T('Confirmer vos choix', 'Confirm your choices'),
               contents = f:scrolled_view {
                 width = 680, height = 400,
                 f:static_text { title = texte, width = 640, height_in_lines = math.min(1500, math.max(20, nbLignes + math.ceil(#texte / 90))) },
               },
-              actionVerb = #plan.aFusionner > 0 and 'Fusionner' or 'Mémoriser les refus',
-              cancelVerb = 'Revenir au code',
+              actionVerb = #plan.aFusionner > 0 and T('Fusionner', 'Merge') or T('Mémoriser les refus', 'Save the refusals'),
+              cancelVerb = T('Revenir au code', 'Back to the code'),
             }
             finConfirmation('ok', { choix = reponse })
             if reponse == 'ok' then break end
@@ -1210,21 +1258,22 @@ LrTasks.startAsyncTask(function()
       end
 
       if #plan.exclues > 0 then
-        etape = 'mémorisation des groupes non fusionnés'
+        etape = T('mémorisation des groupes non fusionnés', 'saving the groups not merged')
         diagnostic:mesurer('memorisation_refus', { groupes = #plan.exclues }, function() memoriserRefus(plan.exclues) end)
       end
       if #plan.exclues + #plan.forcees > 0 then ecrireRapportCsv(decisions, plan) end
       if #plan.aFusionner == 0 then
         issue = 'refus_seuls'
         DerniereAnalyse.oublier()
-        LrDialogs.message('Choix mémorisés', string.format('%d groupes ne seront pas fusionnés : ils resteront « à '
-          .. 'vérifier » aux prochaines analyses.\n%s\n\nRien n’a été modifié dans le catalogue.', #plan.exclues, REFUS), 'info')
+        LrDialogs.message(T('Choix mémorisés', 'Choices saved'), string.format(T('%d groupes ne seront pas fusionnés : ils resteront « à '
+          .. 'vérifier » aux prochaines analyses.\n%s\n\nRien n’a été modifié dans le catalogue.', '%d groups will not be merged: '
+          .. 'they will stay “to check” in later analyses.\n%s\n\nNothing has been changed in the catalog.'), #plan.exclues, REFUS), 'info')
         return
       end
       aFusionner = plan.aFusionner
 
-      etape = 'fusion des doublons'
-      local fusion = LrProgressScope { title = 'Fusion des doublons', functionContext = contexte }
+      etape = T('fusion des doublons', 'merging duplicates')
+      local fusion = LrProgressScope { title = T('Fusion des doublons', 'Merging duplicates'), functionContext = contexte }
       local valide = diagnostic:mesurer('revalidation_fichiers_avant_fusion', { groupes = #aFusionner }, function()
         return RevalidationFichiers.verifier(aFusionner, fusion, Empreintes, Vignettes, cache, diagnostic,
           function(elements, tache, legende) return Parallele.pourChaque(elements, PARALLELE, tache, fusion, legende) end)
@@ -1236,30 +1285,34 @@ LrTasks.startAsyncTask(function()
       issue = 'fusion_appliquee'
       DerniereAnalyse.oublier()
       fusion:done()
-      local bilan = string.format(
+      local bilan = string.format(T(
         '%d groupes fusionnés sur %d. Les copies en trop sont dans la collection « %s ». '
         .. '\n\nElles restent visibles dans les dossiers tant qu’elles sont au catalogue. Pour terminer le retrait, '
         .. 'sélectionnez uniquement les copies écartées dans « Catalogue → Toutes les photos », puis Suppr → « Retirer ».',
+        '%d groups merged out of %d. The extra copies are in the “%s” collection. '
+        .. '\n\nThey stay visible in folders as long as they are in the catalog. To finish removing them, select only '
+        .. 'the discarded copies in “Catalog → All Photographs”, then Delete → “Remove”.'),
         nbFusionnes, #aFusionner, COLLECTION_DOUBLONS)
-        .. '\n\nCtrl+Z annule cette fusion complète, y compris l’historique des exclusions.'
+        .. T('\n\nCtrl+Z annule cette fusion complète, y compris l’historique des exclusions.',
+          '\n\nCtrl+Z undoes this whole merge, including the history of exclusions.')
       if #plan.forcees > 0 then
-        bilan = bilan .. string.format('\n\n%d groupes fusionnés de force, avec la copie choisie dans le rapport.', #plan.forcees)
+        bilan = bilan .. string.format(T('\n\n%d groupes fusionnés de force, avec la copie choisie dans le rapport.', '\n\n%d groups force-merged, with the copy chosen in the report.'), #plan.forcees)
       end
       bilan = bilan .. bilanVirtuelles
       if #plan.exclues > 0 then
-        bilan = bilan .. string.format('\n%d groupes non fusionnés, mémorisés dans %s (Ctrl+Z ne lève pas ce choix).',
+        bilan = bilan .. string.format(T('\n%d groupes non fusionnés, mémorisés dans %s (Ctrl+Z ne lève pas ce choix).', '\n%d groups not merged, saved in %s (Ctrl+Z does not lift this choice).'),
           #plan.exclues, REFUS)
       end
-      if erreurHistorique then bilan = bilan .. '\nHistorique texte à synchroniser : ' .. tostring(erreurHistorique) end
-      bilan = bilan .. '\n\nSauvegarde des collections d’origine :\n' .. sauvegarde
-      LrDialogs.message('Doublons fusionnés', bilan, erreurHistorique and 'warning' or 'info')
+      if erreurHistorique then bilan = bilan .. T('\nHistorique texte à synchroniser : ', '\nText history to synchronise: ') .. tostring(erreurHistorique) end
+      bilan = bilan .. T('\n\nSauvegarde des collections d’origine :\n', '\n\nBackup of the original collections:\n') .. sauvegarde
+      LrDialogs.message(T('Doublons fusionnés', 'Duplicates merged'), bilan, erreurHistorique and 'warning' or 'info')
     end)
     if cache then cache:enregistrer() end
     if not ok then
       issue = 'erreur'
       if diagnostic then diagnostic:compteurs('erreur', { etape = etape, message = tostring(erreur) }) end
-      LrDialogs.message('Erreur pendant la fusion des doublons',
-        string.format('Étape : %s\n%s', etape, tostring(erreur)), 'critical')
+      LrDialogs.message(T('Erreur pendant la fusion des doublons', 'Error while merging duplicates'),
+        string.format(T('Étape : %s\n%s', 'Step: %s\n%s'), etape, tostring(erreur)), 'critical')
     end
   end)
 end)

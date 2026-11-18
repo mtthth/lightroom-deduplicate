@@ -18,7 +18,9 @@ L’historique des photos mises de côté est `photos-traitees.txt`, à côté d
 son propre historique sans le supprimer, et Google Photos ne propose plus au téléchargement les photos déjà
 écartées. Après mise à jour des modules, redémarrez Lightroom pour arrêter les anciennes synchronisations.
 
-Dans le Gestionnaire de modules externes, les réglages du module définissent les mots qui désignent un dossier
+Dans le Gestionnaire de modules externes, les réglages du module définissent la langue de l'interface (français par
+défaut, ou anglais : dialogues et rapports, dès la commande suivante ; les titres du menu suivent la langue de
+Lightroom), et les mots qui désignent un dossier
 mal rangé (par défaut « désordre, mal rang ») ou un dossier de téléchargements (par défaut « manquantes ») : pour
 choisir la copie gardée, ces dossiers passent après les dossiers nommés, datés ou d’année.
 
@@ -296,7 +298,7 @@ Affichez un dossier ou une collection, puis lancez la commande (réglages : 1 ca
 
 ## Tests
 
-Depuis la racine du dépôt, `node tests/lancer.mjs` lance les 20 suites Lua et 2 suites Python hors de Lightroom.
+Depuis la racine du dépôt, `node tests/lancer.mjs` lance les 21 suites Lua et 3 suites Python hors de Lightroom.
 Elles utilisent Node 22+, Lua 5.3 (`texlua` de MiKTeX ou `lua`) et Python 3.12+ sous Windows. Les variables `LUA` et `PYTHON`
 permettent de préciser les exécutables. Le code et les tests sont copiés dans un dossier temporaire : aucun
 catalogue personnel, historique, rapport ou cache réel n’est utilisé.

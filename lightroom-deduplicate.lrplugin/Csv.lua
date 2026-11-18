@@ -7,7 +7,7 @@ local M = {}
 -- (souvent : il est ouvert dans Excel).
 function M.ecrire(chemin, lignes)
   local f = io.open(chemin, 'wb')
-  if not f then error('Impossible d’écrire ' .. chemin .. ' (fichier ouvert dans Excel ?)', 0) end
+  if not f then error(require('Langue').t('Impossible d’écrire ' .. chemin .. ' (fichier ouvert dans Excel ?)', 'Cannot write ' .. chemin .. ' (file open in Excel?)'), 0) end
   f:write('\239\187\191')
   for _, ligne in ipairs(lignes) do
     local cellules = {}

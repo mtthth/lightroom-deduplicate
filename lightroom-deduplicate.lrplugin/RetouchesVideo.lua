@@ -2,6 +2,7 @@
 -- Seuls des réglages effectivement lus et reconnus neutres permettent de
 -- conclure « non retouchée ». Un champ inconnu demande une vérification.
 local M = {}
+local T = require('Langue').t
 -- Profils vierges lus dans Lightroom 15.6 avant/après matérialisation des
 -- paramètres (tests/video-vierge-lr15.lua). Les contrôles inactifs peuvent
 -- avoir des valeurs non nulles ; un nouveau paramètre exige une vérification.
@@ -68,27 +69,27 @@ end
 -- Renvoie false (vierge), true (coupe ou réglage), ou nil et une raison si
 -- la lecture ne permet pas de décider. Les durées du SDK sont non formatées.
 function M.etat(reglages,meta)
-  if type(reglages)~='table' then return nil,'réglages vidéo illisibles' end
+  if type(reglages)~='table' then return nil,T('réglages vidéo illisibles', 'unreadable video settings') end
   meta=meta or {}
   local duree,tronquee=meta.durationInSeconds,meta.trimmedDurationInSeconds
   local debut,fin=secondes(reglages.TrimStart),secondes(reglages.TrimEnd)
   if not fini(duree) or duree<=0 or not fini(tronquee) or tronquee<=0 or not debut or not fin then
-    return nil,'bornes ou durées vidéo indisponibles'
+    return nil,T('bornes ou durées vidéo indisponibles', 'video trim points or durations unavailable')
   end
   if math.abs(debut)>1e-7 or math.abs(fin-duree)>1e-7 or math.abs(tronquee-duree)>1e-7 then
-    return true,'coupe vidéo'
+    return true,T('coupe vidéo', 'video trim')
   end
   for _,cle in ipairs({'Saturation','Vibrance','WhiteBalance'}) do
-    if reglages[cle]==nil then return nil,'réglages vidéo incomplets : '..cle end
+    if reglages[cle]==nil then return nil,T('réglages vidéo incomplets : ', 'incomplete video settings: ')..cle end
   end
-  if reglages.Exposure==nil and reglages.Exposure2012==nil then return nil,'exposition vidéo indisponible' end
-  if reglages.Contrast==nil and reglages.Contrast2012==nil then return nil,'contraste vidéo indisponible' end
+  if reglages.Exposure==nil and reglages.Exposure2012==nil then return nil,T('exposition vidéo indisponible', 'video exposure unavailable') end
+  if reglages.Contrast==nil and reglages.Contrast2012==nil then return nil,T('contraste vidéo indisponible', 'video contrast unavailable') end
   for cle,valeur in pairs(reglages) do
     if cle=='ProcessVersion' then
-      if type(valeur)~='string' or valeur=='' then return nil,'version de traitement vidéo inconnue' end
+      if type(valeur)~='string' or valeur=='' then return nil,T('version de traitement vidéo inconnue', 'unknown video process version') end
     elseif cle~='TrimStart' and cle~='TrimEnd' then
-      if neutres[cle]==nil then return nil,'réglage vidéo inconnu : '..tostring(cle) end
-      if not egaux(valeur,neutres[cle]) then return true,'réglage vidéo : '..cle end
+      if neutres[cle]==nil then return nil,T('réglage vidéo inconnu : ', 'unknown video setting: ')..tostring(cle) end
+      if not egaux(valeur,neutres[cle]) then return true,T('réglage vidéo : ', 'video setting: ')..cle end
     end
   end
   return false

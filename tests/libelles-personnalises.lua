@@ -3,7 +3,7 @@ local f=assert(io.open('lightroom-deduplicate.lrplugin/ReduireRafales.lua','rb')
 local src=f:read('*a'); f:close()
 local debut=assert(src:find('local function lireFichiers',1,true))
 local fin=assert(src:find('local function historiqueARetirer',debut,true))
-local lire=assert(load('return function(Parallele,Historique,TAILLE_LOT,LIBELLES_COULEUR) '
+local lire=assert(load('return function(Parallele,Historique,TAILLE_LOT,LIBELLES_COULEUR) local T = require("Langue").t; '
   ..src:sub(debut,fin-1)..' return lireFichiers end'))()(
   {parLots=function(lot,_,fn) return fn(lot,1,#lot)~=false end},
   {contient=function() return false end},1000,{red=true,yellow=true,green=true,blue=true,purple=true})

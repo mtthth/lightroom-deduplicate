@@ -1,0 +1,5 @@
+"$$$/Deduplicate/Menu/Diagnostic=Test catalog speed…"
+"$$$/Deduplicate/Menu/Doublons=Find duplicates to merge…"
+"$$$/Deduplicate/Menu/Manuelle=Force-merge the selection…"
+"$$$/Deduplicate/Menu/Restaurer=Restore collections from before merging or bursts…"
+"$$$/Deduplicate/Menu/Rafales=Reduce bursts…"

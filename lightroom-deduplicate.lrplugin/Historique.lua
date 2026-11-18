@@ -39,17 +39,17 @@ local function ouvrirAjout(cheminFichier)
   local vide = not LrFileUtils.exists(cheminFichier)
     or (LrFileUtils.fileAttributes(cheminFichier) or {}).fileSize == 0
   local f = io.open(cheminFichier, 'ab')
-  if not f then error('Impossible d’écrire l’historique des photos : ' .. cheminFichier, 0) end
+  if not f then error(require('Langue').t('Impossible d’écrire l’historique des photos : ', 'Cannot write the photo history: ') .. cheminFichier, 0) end
   if vide then
     local ok, erreur = f:write('# type\tchemin\tfichier\tdate_prise_de_vue\r\n')
-    if not ok then f:close(); error('Impossible d’écrire l’historique des photos : ' .. tostring(erreur), 0) end
+    if not ok then f:close(); error(require('Langue').t('Impossible d’écrire l’historique des photos : ', 'Cannot write the photo history: ') .. tostring(erreur), 0) end
   end
   return f
 end
 
 local function fermerAjout(f)
   local ok, erreur = f:close()
-  if not ok then error('Impossible de terminer l’écriture de l’historique des photos : ' .. tostring(erreur), 0) end
+  if not ok then error(require('Langue').t('Impossible de terminer l’écriture de l’historique des photos : ', 'Cannot finish writing the photo history: ') .. tostring(erreur), 0) end
 end
 
 -- Vérifie l'accès en écriture avant de modifier le catalogue, en créant l'en-tête si nécessaire.
@@ -83,7 +83,7 @@ end
 
 function M.contenu(cheminFichier)
   if not LrFileUtils.exists(cheminFichier) then return '' end
-  return assert(LrFileUtils.readFile(cheminFichier), 'Impossible de lire l’historique des photos : ' .. cheminFichier)
+  return assert(LrFileUtils.readFile(cheminFichier), require('Langue').t('Impossible de lire l’historique des photos : ', 'Cannot read the photo history: ') .. cheminFichier)
 end
 
 -- Prépare le nouvel état en mémoire, pour l'enregistrer dans la même action annulable que le catalogue.
@@ -207,9 +207,9 @@ function M.ecrire(cheminFichier, contenu)
 
   local temporaire = LrFileUtils.chooseUniqueFileName(cheminFichier .. '.tmp')
   local f = io.open(temporaire, 'wb')
-  if not f then error('Impossible de préparer le rétablissement de l’historique : ' .. temporaire, 0) end
+  if not f then error(require('Langue').t('Impossible de préparer le rétablissement de l’historique : ', 'Cannot prepare restoring the history: ') .. temporaire, 0) end
   local ok, erreur = f:write(contenu)
-  if not ok then f:close(); error('Impossible de rétablir l’historique : ' .. tostring(erreur), 0) end
+  if not ok then f:close(); error(require('Langue').t('Impossible de rétablir l’historique : ', 'Cannot restore the history: ') .. tostring(erreur), 0) end
   fermerAjout(f)
 
   local sauvegarde
@@ -217,14 +217,14 @@ function M.ecrire(cheminFichier, contenu)
     sauvegarde = LrFileUtils.chooseUniqueFileName(cheminFichier .. '.bak')
     local deplace, resultat, detail = LrTasks.pcall(LrFileUtils.move, cheminFichier, sauvegarde)
     if not deplace or not resultat then
-      error('Impossible de sauvegarder l’historique avant rétablissement : ' .. tostring(detail or resultat), 0)
+      error(require('Langue').t('Impossible de sauvegarder l’historique avant rétablissement : ', 'Cannot back up the history before restoring: ') .. tostring(detail or resultat), 0)
     end
   end
   local deplace, resultat, detail = LrTasks.pcall(LrFileUtils.move, temporaire, cheminFichier)
   if not deplace or not resultat then
     local restaure, retour
     if sauvegarde then restaure, retour = LrTasks.pcall(LrFileUtils.move, sauvegarde, cheminFichier) end
-    error('Impossible de remplacer l’historique : ' .. tostring(detail or resultat)
+    error(require('Langue').t('Impossible de remplacer l’historique : ', 'Cannot replace the history: ') .. tostring(detail or resultat)
       .. ((restaure and retour) and ' (ancien fichier restauré).' or (' (fichier préparé conservé : ' .. temporaire .. ').')), 0)
   end
 end
@@ -257,7 +257,7 @@ function M.ajouter(cheminFichier, type_, photos)
   local f = ouvrirAjout(cheminFichier)
   for _, entree in ipairs(nouvelles) do
     local ok, erreur = f:write(entree.type, '\t', entree.chemin, '\t', entree.fichier, '\t', entree.date, '\r\n')
-    if not ok then f:close(); error('Impossible d’écrire l’historique des photos : ' .. tostring(erreur), 0) end
+    if not ok then f:close(); error(require('Langue').t('Impossible d’écrire l’historique des photos : ', 'Cannot write the photo history: ') .. tostring(erreur), 0) end
   end
   fermerAjout(f)
   return historique

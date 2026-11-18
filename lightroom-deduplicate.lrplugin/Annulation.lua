@@ -10,6 +10,7 @@ local HistoriqueCommun = require 'HistoriqueCommun'
 local LrFileUtils = import 'LrFileUtils'
 local Journal = require 'JournalAnnulable'
 local Migration = require 'Migration'
+local T = require('Langue').t
 
 local M = {}
 local ETAT = 'historiquePhotosV1'
@@ -85,7 +86,7 @@ local function prive(catalogue, attendu, chemin)
     actualise = true
   end, { timeout = 30 })
   noter('PRIVE_FIN\t' .. tostring(statut) .. '\tactualise=' .. tostring(actualise) .. '\ttotal ' .. duree(debut))
-  if statut ~= 'executed' then error('Lightroom n’a pas accordé l’accès à la synchronisation de l’historique.', 0) end
+  if statut ~= 'executed' then error(T('Lightroom n’a pas accordé l’accès à la synchronisation de l’historique.', 'Lightroom did not grant access to synchronise the history.'), 0) end
   return actualise
 end
 
@@ -106,14 +107,14 @@ local function synchroniser(catalogue, chemin)
       local etat = catalogue:getPropertyForPlugin(_PLUGIN, ETAT)
       local miroir = catalogue:getPropertyForPlugin(_PLUGIN, MIROIR)
       if etat and etat:find(HistoriqueCommun.MARQUEUR, 1, true) then
-        error('Le marqueur de l’historique partagé a disparu : migration interrompue.', 0)
+        error(T('Le marqueur de l’historique partagé a disparu : migration interrompue.', 'The shared history marker has disappeared: migration stopped.'), 0)
       end
       local localContenu = Historique.contenu(ancien)
       if LrFileUtils.exists(ancien) and not LrFileUtils.readFile(ancien) then
-        error('Impossible de lire l’ancien historique Deduplicate.', 0)
+        error(T('Impossible de lire l’ancien historique Deduplicate.', 'Cannot read the old Deduplicate history.'), 0)
       end
       if LrFileUtils.exists(commun) and not LrFileUtils.readFile(commun) then
-        error('Impossible de lire l’historique Google Photos.', 0)
+        error(T('Impossible de lire l’historique Google Photos.', 'Cannot read the Google Photos history.'), 0)
       end
       -- Un Ctrl+Z non synchronisé dans l'ancien module a priorité sur son miroir texte.
       if etat ~= nil and etat ~= miroir then localContenu = etat end
@@ -123,7 +124,7 @@ local function synchroniser(catalogue, chemin)
       catalogue:setPropertyForPlugin(_PLUGIN, MIROIR, fusion)
       catalogue:setPropertyForPlugin(_PLUGIN, REFERENCE, fusion)
     end, { timeout = 30 })
-    if statut ~= 'executed' then error('Migration de l’historique partagé impossible.', 0) end
+    if statut ~= 'executed' then error(T('Migration de l’historique partagé impossible.', 'The shared history could not be migrated.'), 0) end
   end
   while true do
     local attendu = {}
@@ -134,7 +135,7 @@ local function synchroniser(catalogue, chemin)
     local fichier = Historique.contenu(chemin)
     if partage and chemin == commun and etat ~= miroir
       and (not etat or not etat:find(HistoriqueCommun.MARQUEUR, 1, true)) then
-      error('Une ancienne action Lightroom a été annulée. L’historique partagé ne peut pas être synchronisé automatiquement.', 0)
+      error(T('Une ancienne action Lightroom a été annulée. L’historique partagé ne peut pas être synchronisé automatiquement.', 'An old Lightroom action was undone. The shared history cannot be synchronised automatically.'), 0)
     end
     if etat ~= nil and etat == attendu[REFERENCE] and fichier == miroir
       and (attendu[OPERATIONS] or '') == attendu[OPERATIONS_MIROIR] and not Journal.aMemoriser(catalogue) then
@@ -172,7 +173,7 @@ function M.action(catalogue, chemin, titre, options, modifier)
       Journal.ajouter(catalogue, ancien, delta, options.temoin)
     end, { timeout = 120 })
     noter('ACTION_FIN\t' .. tostring(statut) .. '\ttotal ' .. duree(debut))
-    if statut ~= 'executed' then error('Lightroom n’a pas accordé l’accès à l’opération « ' .. titre .. ' ».', 0) end
+    if statut ~= 'executed' then error(T('Lightroom n’a pas accordé l’accès à l’opération « ' .. titre .. ' ».', 'Lightroom did not grant access to the “' .. titre .. '” operation.'), 0) end
     local ok, erreur = LrTasks.pcall(synchroniser, catalogue, chemin)
     phase('action « ' .. titre .. ' » terminée')
     if ok then return true end
@@ -199,8 +200,9 @@ function M.demarrer(chemin)
       phase('passage périodique : repos')
       if not ok and tostring(erreur) ~= derniereErreur then
         derniereErreur = tostring(erreur)
-        LrDialogs.message('Historique non synchronisé', derniereErreur
-          .. '\nLe catalogue conserve l’état annulable. Le module réessaiera la synchronisation.', 'warning')
+        LrDialogs.message(T('Historique non synchronisé', 'History not synchronised'), derniereErreur
+          .. T('\nLe catalogue conserve l’état annulable. Le module réessaiera la synchronisation.',
+            '\nThe catalog keeps the undoable state. The plug-in will try to synchronise again.'), 'warning')
       elseif ok then
         derniereErreur = nil
       end

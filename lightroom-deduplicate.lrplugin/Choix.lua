@@ -15,6 +15,8 @@ local Doublons = require 'Doublons'
 
 local M = {}
 
+local T = require('Langue').t
+-- En-tête du fichier groupes-refuses.txt : un fichier de données, en français dans toutes les langues.
 M.ENTETE = '# Groupes que vous avez choisi de ne pas fusionner : date, puis les fichiers du groupe, séparés par des tabulations.\r\n'
   .. '# Un groupe qui réunit deux fichiers d’une même ligne reste « à vérifier ». Supprimez la ligne pour lever le refus.\r\n'
 
@@ -48,11 +50,12 @@ function M.lireCode(texte, decisions, identifiant)
   for mot in propre:gmatch('%S+') do mots[#mots + 1] = mot end
   if #mots == 0 then return choix end
   if mots[1] ~= 'dedup' then
-    return nil, 'Le code doit commencer par DEDUP : copiez-le avec le bouton « Copier le code » du rapport.'
+    return nil, T('Le code doit commencer par DEDUP : copiez-le avec le bouton « Copier le code » du rapport.', 'The code must start with DEDUP: copy it with the “Copy the code” button of the report.')
   end
   if mots[2] ~= identifiant then
-    return nil, string.format('Ce code vient d’un autre rapport (analyse %s ; celle-ci est %s). Ouvrez le rapport de '
-      .. 'cette analyse avec « Ouvrir le rapport » et copiez de nouveau le code.', mots[2] or '?', identifiant)
+    return nil, string.format(T('Ce code vient d’un autre rapport (analyse %s ; celle-ci est %s). Ouvrez le rapport de '
+      .. 'cette analyse avec « Ouvrir le rapport » et copiez de nouveau le code.', 'This code comes from another report '
+      .. '(analysis %s; this one is %s). Open the report of this analysis with “Open the report” and copy the code again.'), mots[2] or '?', identifiant)
   end
   local mode
   for i = 3, #mots do
@@ -62,26 +65,26 @@ function M.lireCode(texte, decisions, identifiant)
     else
       local n, k = mot:match('^(%d+)$'), nil
       if not n then n, k = mot:match('^(%d+):(%d+)$') end
-      if not n or not mode then return nil, 'Code illisible près de « ' .. mot .. ' ».' end
+      if not n or not mode then return nil, T('Code illisible près de « ' .. mot .. ' ».', 'Unreadable code near “' .. mot .. '”.') end
       n = tonumber(n)
       local d = decisions[n]
-      if not d then return nil, string.format('Le groupe %d n’existe pas dans ce rapport.', n) end
+      if not d then return nil, string.format(T('Le groupe %d n’existe pas dans ce rapport.', 'Group %d does not exist in this report.'), n) end
       if choix.exclus[n] or choix.forces[n] then
-        return nil, string.format('Le groupe %d apparaît deux fois dans le code.', n)
+        return nil, string.format(T('Le groupe %d apparaît deux fois dans le code.', 'Group %d appears twice in the code.'), n)
       end
       if mode == 'non' then
-        if k then return nil, string.format('« %s » : seul un groupe forcé indique la copie à garder.', mot) end
+        if k then return nil, string.format(T('« %s » : seul un groupe forcé indique la copie à garder.', '“%s”: only a forced group names the copy to keep.'), mot) end
         if d.aVerifier then
-          return nil, string.format('Le groupe %d est déjà laissé tel quel (« à vérifier ») : rien à exclure.', n)
+          return nil, string.format(T('Le groupe %d est déjà laissé tel quel (« à vérifier ») : rien à exclure.', 'Group %d is already left as it is (“to check”): nothing to leave out.'), n)
         end
         choix.exclus[n] = true
       else
         if not d.aVerifier then
-          return nil, string.format('Le groupe %d est déjà proposé à la fusion : rien à forcer.', n)
+          return nil, string.format(T('Le groupe %d est déjà proposé à la fusion : rien à forcer.', 'Group %d is already proposed for merging: nothing to force.'), n)
         end
         k = tonumber(k or 1)
         if k < 1 or k > #d.retirees + 1 then
-          return nil, string.format('Le groupe %d n’a pas de copie numéro %d.', n, k)
+          return nil, string.format(T('Le groupe %d n’a pas de copie numéro %d.', 'Group %d has no copy number %d.'), n, k)
         end
         choix.forces[n] = k
       end
@@ -108,12 +111,14 @@ function M.lireCode(texte, decisions, identifiant)
         if communes > 0 then
           if choix.forces[n] or communes < total then
             if choix.forces[n] then
-              return nil, string.format('Les groupes %d et %d partagent des photos : ne forcez qu’un des deux (décochez '
-                .. '« Fusionner de force » sur le groupe %d).', math.min(f, n), math.max(f, n), math.max(f, n))
+              return nil, string.format(T('Les groupes %d et %d partagent des photos : ne forcez qu’un des deux (décochez '
+                .. '« Fusionner de force » sur le groupe %d).', 'Groups %d and %d share photos: force only one of them (untick '
+                .. '“Force merge” on group %d).'), math.min(f, n), math.max(f, n), math.max(f, n))
             end
-            return nil, string.format('Les groupes %d et %d partagent des photos, mais le groupe forcé %d ne contient '
+            return nil, string.format(T('Les groupes %d et %d partagent des photos, mais le groupe forcé %d ne contient '
               .. 'qu’une partie du groupe %d : cochez « Ne pas fusionner » sur le groupe %d, ou décochez « Fusionner de '
-              .. 'force » sur le groupe %d.', math.min(f, n), math.max(f, n), f, n, n, f)
+              .. 'force » sur le groupe %d.', 'Groups %d and %d share photos, but forced group %d contains only part of group '
+              .. '%d: tick “Do not merge” on group %d, or untick “Force merge” on group %d.'), math.min(f, n), math.max(f, n), f, n, n, f)
           end
           choix.absorbes[n] = f
         end
@@ -136,7 +141,7 @@ function M.appliquer(decisions, choix)
       for _, c in ipairs(d.retirees) do copies[#copies + 1] = c end
       local forcee = {
         numero = n, garde = copies[k], retirees = {}, memeImage = d.memeImage, forcee = d.aVerifier,
-        pourquoi = k == 1 and d.pourquoi or 'choisie dans le rapport',
+        pourquoi = k == 1 and d.pourquoi or T('choisie dans le rapport', 'chosen in the report'),
       }
       for i, c in ipairs(copies) do
         if i ~= k then forcee.retirees[#forcee.retirees + 1] = c end

@@ -26,7 +26,8 @@ local M = {}
 
 -- Collection où « Réduire les rafales » rassemble les cadres à retirer. Elle sera vidée une fois les
 -- cadres supprimés : elle ne peut donc pas servir de mémoire.
-M.COLLECTION = 'Rafales à retirer'
+local T = require('Langue').t
+M.COLLECTION = 'Rafales à retirer'   -- nom de collection : le même dans toutes les langues
 -- Mot-clé (non exporté) posé sur toutes les photos des rafales traitées, gardées comme retirées : les
 -- relances les ignorent, pour ne pas réduire une seconde fois des cadres déjà réduits. Pour retraiter
 -- une rafale, il suffit d'ôter ce mot-clé de ses photos.
@@ -134,7 +135,7 @@ function M.proteger(cadre)
   end
   for _, f in ipairs(cadre.fichiers) do
     for _, raison in ipairs(f.raisons or {}) do ajouter(raison) end
-    if f.derive then ajouter('version retouchée (éditeur externe)') end
+    if f.derive then ajouter(T('version retouchée (éditeur externe)', 'edited version (external editor)')) end
   end
   cadre.raisons = raisons
   cadre.protege = #raisons > 0
@@ -230,8 +231,9 @@ function M.decider(rafales)
           c.decision = 'garder'
         else
           c.decision = 'retirer'
-          c.pourquoi = meilleur.nettete == nil and 'netteté non mesurée : le premier cadre du bloc est gardé'
-            or ('moins net que ' .. meilleur.nom)
+          c.nonMesure = meilleur.nettete == nil
+          c.pourquoi = c.nonMesure and T('netteté non mesurée : le premier cadre du bloc est gardé', 'sharpness not measured: the first frame of the block is kept')
+            or (T('moins net que ', 'less sharp than ') .. meilleur.nom)
         end
       end
     end

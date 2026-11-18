@@ -30,6 +30,9 @@ local function h(texte)
   }))
 end
 
+local Langue = require 'Langue'
+local T = Langue.t
+
 local function pluriel(n, singulier, plur)
   return n .. ' ' .. (n > 1 and (plur or (singulier .. 's')) or singulier)
 end
@@ -40,13 +43,18 @@ end
 
 local function taille(octets)
   octets = octets or 0
+  if Langue.anglais() then
+    if octets >= 1024 ^ 3 then return string.format('%.2f GB', octets / 1024 ^ 3) end
+    if octets >= 1024 ^ 2 then return string.format('%.1f MB', octets / 1024 ^ 2) end
+    return string.format('%d KB', math.floor(octets / 1024 + 0.5))
+  end
   if octets >= 1024 ^ 3 then return (string.format('%.2f Go', octets / 1024 ^ 3):gsub('%.', ',')) end
   if octets >= 1024 ^ 2 then return (string.format('%.1f Mo', octets / 1024 ^ 2):gsub('%.', ',')) end
   return string.format('%d Ko', math.floor(octets / 1024 + 0.5))
 end
 
 local function dateTexte(date)
-  return date and Epoques.texte(Epoques.depuisLightroom(date, 0)) or 'date inconnue'
+  return date and Epoques.texte(Epoques.depuisLightroom(date, 0)) or T('date inconnue', 'unknown date')
 end
 
 -- Les trois derniers dossiers du chemin : « … / 2018 / 2018-08-12 ».
@@ -77,14 +85,14 @@ end
 -- Ce qui distingue une copie, en pastilles (retouches, copies virtuelles, notes, mots-clés…).
 local function badges(c)
   local b = {}
-  if Similitude.nomRetouche(nomFichier(c.chemin)) then b[#b + 1] = badge('b-nom', 'nom de retouche') end
-  if c.retouchee then b[#b + 1] = badge('b-lr', 'retouchée dans Lightroom') end
-  if (c.virtuelles or 0) > 0 then b[#b + 1] = badge('b-lr', pluriel(c.virtuelles, 'copie virtuelle', 'copies virtuelles')) end
-  if c.publiee then b[#b + 1] = badge('b-lr', 'publiée') end
-  if c.dejaEcartee then b[#b + 1] = badge('b-nom', 'déjà écartée') end
+  if Similitude.nomRetouche(nomFichier(c.chemin)) then b[#b + 1] = badge('b-nom', T('nom de retouche', 'edit name')) end
+  if c.retouchee then b[#b + 1] = badge('b-lr', T('retouchée dans Lightroom', 'edited in Lightroom')) end
+  if (c.virtuelles or 0) > 0 then b[#b + 1] = badge('b-lr', pluriel(c.virtuelles, T('copie virtuelle', 'virtual copy'), T('copies virtuelles', 'virtual copies'))) end
+  if c.publiee then b[#b + 1] = badge('b-lr', T('publiée', 'published')) end
+  if c.dejaEcartee then b[#b + 1] = badge('b-nom', T('déjà écartée', 'already set aside')) end
   if (c.note or 0) > 0 then b[#b + 1] = badge('', string.rep('★', c.note)) end
-  if c.drapeau == 1 then b[#b + 1] = badge('', 'retenue') elseif c.drapeau == -1 then b[#b + 1] = badge('', 'rejetée') end
-  if c.motsCles and #c.motsCles > 0 then b[#b + 1] = badge('', pluriel(#c.motsCles, 'mot-clé', 'mots-clés')) end
+  if c.drapeau == 1 then b[#b + 1] = badge('', T('retenue', 'picked')) elseif c.drapeau == -1 then b[#b + 1] = badge('', T('rejetée', 'rejected')) end
+  if c.motsCles and #c.motsCles > 0 then b[#b + 1] = badge('', pluriel(#c.motsCles, T('mot-clé', 'keyword'), T('mots-clés', 'keywords'))) end
   local nbCollections = 0
   for _, col in ipairs(c.collections or {}) do
     if not col.dynamique and not col.exclue then nbCollections = nbCollections + 1 end
@@ -93,25 +101,28 @@ local function badges(c)
   return table.concat(b)
 end
 
-local LIBELLES = { garder = 'Gardée', retirer = 'Retirée', verifier = 'À vérifier', serait = 'Serait gardée', apart = 'Conservée' }
+local function libelles()
+  return { garder = T('Gardée', 'Kept'), retirer = T('Retirée', 'Removed'), verifier = T('À vérifier', 'To check'),
+    serait = T('Serait gardée', 'Would be kept'), apart = T('Conservée', 'Kept apart') }
+end
 
 -- numero, rang : pour une copie d'un groupe « à vérifier », le bouton qui la garde si le groupe est forcé
 -- (rang 1 : la copie qui serait gardée, puis les autres dans l'ordre du groupe).
 local function figure(c, role, vignette, numero, rang)
   local chemin = vignette and vignette(c)
   local image = chemin and string.format('<img src="%s" alt="" loading="lazy" decoding="async">', h(chemin))
-    or '<div class="vide">pas d’aperçu</div>'
+    or '<div class="vide">' .. T('pas d’aperçu', 'no preview') .. '</div>'
   local infos = {}
   if c.dimensions then infos[#infos + 1] = c.dimensions end
   infos[#infos + 1] = taille(c.octets or c.taille)
   infos[#infos + 1] = dateTexte(c.date)
   local garde = numero and string.format(
-    '<label class="garde"><input type="radio" name="garde%d" value="%d"%s> garder celle-ci</label>',
+    '<label class="garde"><input type="radio" name="garde%d" value="%d"%s> ' .. T('garder celle-ci', 'keep this one') .. '</label>',
     numero, rang, rang == 1 and ' checked' or '') or ''
   return string.format(
     '<figure class="%s%s"><div class="img">%s<em data-libelle="%s">%s</em></div><figcaption><b title="%s">%s</b>'
     .. '<small title="%s">%s</small><small>%s</small><div class="badges">%s</div>%s</figcaption></figure>',
-    role == 'serait' and 'garder' or role, c.video and ' video' or '', image, h(LIBELLES[role]), h(LIBELLES[role]), h(c.chemin),
+    role == 'serait' and 'garder' or role, c.video and ' video' or '', image, h(libelles()[role]), h(libelles()[role]), h(c.chemin),
     h(nomFichier(c.chemin)), h(dossierComplet(c.chemin)), h(dossierCourt(c.chemin)), h(table.concat(infos, ' · ')),
     badges(c), garde)
 end
@@ -124,7 +135,7 @@ end
 
 local function guillemets(noms)
   local r = {}
-  for i, n in ipairs(noms) do r[i] = '« ' .. h(n) .. ' »' end
+  for i, n in ipairs(noms) do r[i] = T('« ' .. h(n) .. ' »', '“' .. h(n) .. '”') end
   return table.concat(r, ', ')
 end
 
@@ -134,12 +145,12 @@ local function lignesEffets(e, collectionARetirer)
   if #(e.corbeillesGardee or {}) > 0 then
     local noms = {}
     for _, col in ipairs(e.corbeillesGardee) do noms[#noms + 1] = col.nom end
-    l[#l + 1] = 'La copie gardée quitte les collections de retrait : ' .. guillemets(noms)
+    l[#l + 1] = T('La copie gardée quitte les collections de retrait : ', 'The kept copy leaves the removal collections: ') .. guillemets(noms)
   end
   if #e.collections > 0 then
     local noms = {}
     for i, col in ipairs(e.collections) do noms[i] = col.nom end
-    l[#l + 1] = 'La copie gardée rejoint ' .. pluriel(#noms, 'collection') .. ' : ' .. guillemets(noms)
+    l[#l + 1] = T('La copie gardée rejoint ', 'The kept copy joins ') .. pluriel(#noms, 'collection') .. T(' : ', ': ') .. guillemets(noms)
   end
   local quittees, vues = {}, {}
   for _, q in ipairs(e.quittees) do
@@ -148,22 +159,22 @@ local function lignesEffets(e, collectionARetirer)
       quittees[#quittees + 1] = q.collection.nom
     end
   end
-  if #quittees > 0 then l[#l + 1] = 'Les copies retirées sortent de : ' .. guillemets(quittees) end
+  if #quittees > 0 then l[#l + 1] = T('Les copies retirées sortent de : ', 'The removed copies leave: ') .. guillemets(quittees) end
   if #e.motsCles > 0 then
     local noms = {}
     for i, mot in ipairs(e.motsCles) do noms[i] = mot.nom end
-    l[#l + 1] = 'Mots-clés ajoutés : ' .. guillemets(noms)
+    l[#l + 1] = T('Mots-clés ajoutés : ', 'Keywords added: ') .. guillemets(noms)
   end
-  if e.note then l[#l + 1] = 'Note relevée à ' .. string.rep('★', e.note) end
+  if e.note then l[#l + 1] = T('Note relevée à ', 'Rating raised to ') .. string.rep('★', e.note) end
   if e.drapeau then
-    local choix = e.drapeau == 1 and 'retenue' or 'rejetée'
-    l[#l + 1] = 'Drapeau « ' .. choix .. ' » recopié'
+    local choix = e.drapeau == 1 and T('retenue', 'picked') or T('rejetée', 'rejected')
+    l[#l + 1] = T('Drapeau « ' .. choix .. ' » recopié', '“' .. choix .. '” flag copied')
   end
   for _, t in ipairs(e.textes) do
-    l[#l + 1] = h(Doublons.NOMS_CHAMPS[t.cle] or t.cle) .. ' recopié(e) : ' .. h(t.valeur)
+    l[#l + 1] = h(Doublons.nomChamp(t.cle)) .. T(' recopié(e) : ', ' copied: ') .. h(t.valeur)
   end
-  if e.gps then l[#l + 1] = 'Position GPS recopiée' end
-  l[#l + 1] = 'Les copies retirées vont dans la collection « ' .. h(collectionARetirer) .. ' » : rien n’est supprimé.'
+  if e.gps then l[#l + 1] = T('Position GPS recopiée', 'GPS position copied') end
+  l[#l + 1] = T('Les copies retirées vont dans la collection « ' .. h(collectionARetirer) .. ' » : rien n’est supprimé.', 'The removed copies go to the “' .. h(collectionARetirer) .. '” collection: nothing is deleted.')
   return l
 end
 
@@ -186,8 +197,9 @@ local function carteDecision(numero, d, m)
   local copies = { d.garde }
   for _, c in ipairs(d.retirees) do copies[#copies + 1] = c end
   local choixGarde = verifier and numero or nil
-  local reunion = d.reunis and string.format('<p class="pourquoi">Ce groupe réunit %d groupes qui avaient des photos '
-    .. 'en commun (mêmes copies et autres versions de la même photo) : forcé, il ne garde qu’une seule copie.</p>',
+  local reunion = d.reunis and string.format('<p class="pourquoi">' .. T('Ce groupe réunit %d groupes qui avaient des photos '
+    .. 'en commun (mêmes copies et autres versions de la même photo) : forcé, il ne garde qu’une seule copie.', 'This group '
+    .. 'combines %d groups that shared photos (same copies and other versions of the same photo): forced, it keeps only one copy.') .. '</p>',
     d.reunis) or ''
   local figures = { figure(d.garde, d.versions and 'apart' or verifier and 'serait' or 'garder', m.vignette, choixGarde, 1) }
   for i, c in ipairs(d.retirees) do
@@ -201,34 +213,40 @@ local function carteDecision(numero, d, m)
     for _, c in ipairs(copies) do
       if Similitude.nomRetouche(nomFichier(c.chemin)) then retouche = true end
     end
-    choix = '<label class="choix"><input type="checkbox" class="force"> Fusionner de force</label>'
+    choix = '<label class="choix"><input type="checkbox" class="force"> ' .. T('Fusionner de force', 'Force merge') .. '</label>'
     corps = '<p class="pourquoi">' .. (retouche
-        and 'La version dont le nom annonce une retouche ne montre pas la même vue que les autres copies.'
-        or 'Les images diffèrent (version retouchée, recadrée ou recompressée).')
-      .. (d.aVerifier ~= Doublons.RAISON_VERSIONS and (' ' .. h(d.aVerifier) .. '.') or '')
-      .. ' <b>Tout est conservé</b>, sauf si vous cochez « Fusionner de force » : choisissez alors la copie à garder '
-      .. '(proposée : ' .. h(nomFichier(d.garde.chemin)) .. ', ' .. h(d.pourquoi or '') .. '). Les retouches Lightroom '
-      .. 'et publications des copies écartées ne sont pas transférées.</p>' .. reunion
+        and T('La version dont le nom annonce une retouche ne montre pas la même vue que les autres copies.',
+          'The version whose name announces an edit does not show the same view as the other copies.')
+        or T('Les images diffèrent (version retouchée, recadrée ou recompressée).', 'The images differ (edited or recompressed version).'))
+      .. (d.aVerifier ~= Doublons.raisonVersions() and (' ' .. h(d.aVerifier) .. '.') or '')
+      .. T(' <b>Tout est conservé</b>, sauf si vous cochez « Fusionner de force » : choisissez alors la copie à garder '
+      .. '(proposée : ', ' <b>Everything is kept</b>, unless you tick “Force merge”: then choose the copy to keep '
+      .. '(proposed: ') .. h(nomFichier(d.garde.chemin)) .. ', ' .. h(d.pourquoi or '') .. T('). Les retouches Lightroom '
+      .. 'et publications des copies écartées ne sont pas transférées.', '). Lightroom edits and publications of the '
+      .. 'discarded copies are not transferred.') .. '</p>' .. reunion
     return string.format(
-      '<article class="carte apart" id="g%d" data-g="%d" data-type="apart" data-ids="%s" data-q="%s"><h3>Groupe %d <small>%s · %s · '
-      .. 'versions différentes</small></h3>%s<div class="copies">%s</div>%s</article>',
+      '<article class="carte apart" id="g%d" data-g="%d" data-type="apart" data-ids="%s" data-q="%s"><h3>' .. T('Groupe', 'Group')
+      .. ' %d <small>%s · %s · ' .. T('versions différentes', 'different versions') .. '</small></h3>%s<div class="copies">%s</div>%s</article>',
       numero, numero, idsTexte(copies), h(texteRecherche(copies)), numero, h(nomFichier(d.garde.chemin)), h(dateTexte(d.garde.date)),
       choix, table.concat(figures), corps)
   elseif verifier then
-    choix = '<label class="choix"><input type="checkbox" class="force"> Fusionner de force</label>'
-    corps = '<p class="pourquoi">À vérifier : ' .. h(d.aVerifier) .. '. <b>Rien ne sera fait pour ce groupe</b>, sauf si '
+    choix = '<label class="choix"><input type="checkbox" class="force"> ' .. T('Fusionner de force', 'Force merge') .. '</label>'
+    corps = '<p class="pourquoi">' .. T('À vérifier : ', 'To check: ') .. h(d.aVerifier) .. T('. <b>Rien ne sera fait pour ce groupe</b>, sauf si '
       .. 'vous cochez « Fusionner de force » : choisissez alors la copie à garder. Les retouches Lightroom et publications '
       .. 'des copies écartées ne sont pas transférées ; leurs copies virtuelles (hors vidéos) sont recréées sur la copie '
-      .. 'gardée.</p>' .. reunion
+      .. 'gardée.', '. <b>Nothing will be done for this group</b>, unless you tick “Force merge”: then choose the copy '
+      .. 'to keep. Lightroom edits and publications of the discarded copies are not transferred; their virtual copies '
+      .. '(except videos) are recreated on the kept copy.') .. '</p>' .. reunion
   else
-    choix = '<label class="choix"><input type="checkbox" class="non"> Ne pas fusionner '
-      .. '<small>(mémorisé : le groupe restera « à vérifier » aux prochaines analyses)</small></label>'
-    corps = '<p class="pourquoi">Copie gardée : ' .. h(d.pourquoi or '') .. '.</p>'
+    choix = '<label class="choix"><input type="checkbox" class="non"> ' .. T('Ne pas fusionner ', 'Do not merge ')
+      .. '<small>' .. T('(mémorisé : le groupe restera « à vérifier » aux prochaines analyses)',
+        '(saved: the group will stay “to check” in later analyses)') .. '</small></label>'
+    corps = '<p class="pourquoi">' .. T('Copie gardée : ', 'Kept copy: ') .. h(d.pourquoi or '') .. '.</p>'
       .. liste(lignesEffets(d.effets, m.collection))
   end
-  local genre = d.memeImage and 'même image' or 'copie réduite ou recompressée'
+  local genre = d.memeImage and T('même image', 'same image') or T('copie réduite ou recompressée', 'downsized or recompressed copy')
   return string.format(
-    '<article class="carte %s" id="g%d" data-g="%d" data-type="%s" data-ids="%s" data-q="%s"><h3>Groupe %d <small>%s · %s · %s</small></h3>'
+    '<article class="carte %s" id="g%d" data-g="%d" data-type="%s" data-ids="%s" data-q="%s"><h3>' .. T('Groupe', 'Group') .. ' %d <small>%s · %s · %s</small></h3>'
     .. '%s<div class="copies">%s</div>%s</article>',
     verifier and 'verifier' or 'fusion', numero, numero, d.memeImage and 'identique' or 'reduite', idsTexte(copies),
     h(texteRecherche(copies)),
@@ -317,7 +335,7 @@ function filtrer() {
     c.hidden = !ok;
     if (ok) visibles++;
   });
-  compte.textContent = visibles + (visibles > 1 ? ' groupes affichés' : ' groupe affiché');
+  compte.textContent = visibles + (visibles > 1 ? TXT.groupesAffiches : TXT.groupeAffiche);
 }
 // Aspect d'un groupe selon ses cases : exclu, ou forcé avec la copie choisie en vert et les autres en rouge.
 function majCarte(c) {
@@ -330,7 +348,7 @@ function majCarte(c) {
     const choisie = force.checked && f.querySelector('.garde input').value === k;
     f.classList.toggle('choisie', choisie);
     const em = f.querySelector('em');
-    em.textContent = force.checked ? (choisie ? 'Gardée (forcé)' : 'Retirée') : em.dataset.libelle;
+    em.textContent = force.checked ? (choisie ? TXT.gardeeForce : TXT.retiree) : em.dataset.libelle;
   });
 }
 function majCode() {
@@ -347,9 +365,9 @@ function majCode() {
   copier.disabled = !champCode.value;
   const pluriel = (n, mot) => n + ' ' + mot + (n > 1 ? 's' : '');
   resumeChoix.textContent = champCode.value
-    ? pluriel(non.length, 'groupe') + ' à ne pas fusionner, ' + pluriel(forces.length, 'groupe') + ' à fusionner de force. '
-      + 'Copiez le code et collez-le dans Lightroom avant de cliquer sur « Fusionner ».'
-    : 'Aucun choix : les groupes « à fusionner » le seront tous, les groupes « à vérifier » resteront tels quels.';
+    ? pluriel(non.length, TXT.groupe) + TXT.aNePasFusionner + pluriel(forces.length, TXT.groupe) + TXT.aFusionnerDeForce
+      + TXT.copiezLeCode
+    : TXT.aucunChoix;
   try { localStorage.setItem(CLE, JSON.stringify({ non, force })); } catch (e) { /* choix gardés pour cette page seulement */ }
 }
 document.addEventListener('change', (e) => {
@@ -366,7 +384,7 @@ function pourAffichees(action) {
 }
 document.getElementById('exclure-affiches').addEventListener('click', () => {
   const n = cartes.filter((c) => !c.hidden && c.querySelector('input.non')).length;
-  if (n && confirm('Ne pas fusionner les ' + n + ' groupes « à fusionner » affichés ?')) {
+  if (n && confirm(TXT.confirmerExclure.replace('%n', n))) {
     pourAffichees((c) => { const non = c.querySelector('input.non'); if (non) non.checked = true; });
   }
 });
@@ -391,9 +409,8 @@ document.getElementById('fusionner-affiches').addEventListener('click', () => {
   const affichees = cartes.filter((c) => !c.hidden);
   const n = affichees.length;
   const forcees = affichees.filter((c) => c.querySelector('input.force')).length;
-  if (n && confirm('Fusionner les ' + n + ' groupes affichés ?'
-    + (forcees ? '\n' + forcees + ' groupes « à vérifier » ou de versions conservées à part seront fusionnés de force, '
-      + 'avec la copie proposée sauf choix contraire. Leurs retouches Lightroom ne sont pas transférées.' : ''))) {
+  if (n && confirm(TXT.confirmerFusion.replace('%n', n)
+    + (forcees ? '\n' + TXT.confirmerForcees.replace('%n', forcees) : ''))) {
     affichees.forEach((c) => { const non = c.querySelector('input.non'); if (non) non.checked = false; });
     const ecartes = [];
     affichees.filter((c) => c.querySelector('input.force'))
@@ -403,15 +420,14 @@ document.getElementById('fusionner-affiches').addEventListener('click', () => {
         if (force.checked) return;
         const conflit = chevauchement(c);
         if (!conflit) { force.checked = true; return; }
-        ecartes.push('groupe ' + c.dataset.g + ' : partage ' + (conflit.communes > 1 ? conflit.communes + ' photos'
-          : 'une photo') + ' avec le groupe ' + conflit.carte.dataset.g);
+        ecartes.push(TXT.conflit.replace('%g', c.dataset.g)
+          .replace('%p', conflit.communes > 1 ? TXT.photos.replace('%n', conflit.communes) : TXT.unePhoto)
+          .replace('%a', conflit.carte.dataset.g));
       });
     pourAffichees(() => {});
     if (ecartes.length) {
-      alert((ecartes.length > 1 ? 'Ces groupes n’ont pas été forcés :' : 'Ce groupe n’a pas été forcé :')
-        + '\n• ' + ecartes.join('\n• ')
-        + '\n\nPour en forcer un, sortez d’abord l’autre groupe de la fusion : décochez son « Fusionner de force », ou '
-        + 'cochez son « Ne pas fusionner ».');
+      alert((ecartes.length > 1 ? TXT.nonForces : TXT.nonForce)
+        + '\n• ' + ecartes.join('\n• ') + '\n\n' + TXT.pourForcer);
     }
   }
 });
@@ -422,8 +438,8 @@ copier.addEventListener('click', async () => {
   let ok = false;
   try { await navigator.clipboard.writeText(champCode.value); ok = true; } catch (e) { /* page locale : copie classique */ }
   if (!ok) { champCode.select(); try { ok = document.execCommand('copy'); } catch (e) { ok = false; } }
-  copier.textContent = ok ? 'Code copié ✓' : 'Code sélectionné : Ctrl+C';
-  setTimeout(() => { copier.textContent = 'Copier le code'; }, 2500);
+  copier.textContent = ok ? TXT.codeCopie : TXT.codeSelectionne;
+  setTimeout(() => { copier.textContent = TXT.copierLeCode; }, 2500);
 });
 recherche.addEventListener('input', filtrer);
 seulementReduites.addEventListener('change', filtrer);
@@ -450,6 +466,43 @@ filtrer();
 ]==]
 
 -- Construit la page HTML (texte) du rapport.
+-- Textes du script de la page, dans la langue choisie, en littéral JavaScript.
+local function textesScript()
+  local textes = {
+    groupe = T('groupe', 'group'), groupeAffiche = T(' groupe affiché', ' group shown'), groupesAffiches = T(' groupes affichés', ' groups shown'),
+    gardeeForce = T('Gardée (forcé)', 'Kept (forced)'), retiree = T('Retirée', 'Removed'),
+    aNePasFusionner = T(' à ne pas fusionner, ', ' not to merge, '), aFusionnerDeForce = T(' à fusionner de force. ', ' to force-merge. '),
+    copiezLeCode = T('Copiez le code et collez-le dans Lightroom avant de cliquer sur « Fusionner ».',
+      'Copy the code and paste it into Lightroom before clicking “Merge”.'),
+    aucunChoix = T('Aucun choix : les groupes « à fusionner » le seront tous, les groupes « à vérifier » resteront tels quels.',
+      'No choice: all groups “to merge” will be merged, groups “to check” will stay as they are.'),
+    confirmerExclure = T('Ne pas fusionner les %n groupes « à fusionner » affichés ?', 'Do not merge the %n groups “to merge” shown?'),
+    confirmerFusion = T('Fusionner les %n groupes affichés ?', 'Merge the %n groups shown?'),
+    confirmerForcees = T('%n groupes « à vérifier » ou de versions conservées à part seront fusionnés de force, avec la copie '
+      .. 'proposée sauf choix contraire. Leurs retouches Lightroom ne sont pas transférées.', '%n groups “to check” or of '
+      .. 'versions kept apart will be force-merged, with the proposed copy unless you chose otherwise. Their Lightroom edits '
+      .. 'are not transferred.'),
+    conflit = T('groupe %g : partage %p avec le groupe %a', 'group %g: shares %p with group %a'),
+    photos = T('%n photos', '%n photos'), unePhoto = T('une photo', 'one photo'),
+    nonForces = T('Ces groupes n’ont pas été forcés :', 'These groups were not forced:'),
+    nonForce = T('Ce groupe n’a pas été forcé :', 'This group was not forced:'),
+    pourForcer = T('Pour en forcer un, sortez d’abord l’autre groupe de la fusion : décochez son « Fusionner de force », ou '
+      .. 'cochez son « Ne pas fusionner ».', 'To force one, first take the other group out of the merge: untick its “Force '
+      .. 'merge”, or tick its “Do not merge”.'),
+    codeCopie = T('Code copié ✓', 'Code copied ✓'), codeSelectionne = T('Code sélectionné : Ctrl+C', 'Code selected: Ctrl+C'),
+    copierLeCode = T('Copier le code', 'Copy the code'),
+  }
+  local cles = {}
+  for cle in pairs(textes) do cles[#cles + 1] = cle end
+  table.sort(cles)
+  local morceaux = {}
+  for _, cle in ipairs(cles) do
+    local valeur = textes[cle]:gsub('\\', '\\\\'):gsub('"', '\\"'):gsub('\n', '\\n'):gsub('</', '<\\/')
+    morceaux[#morceaux + 1] = cle .. ': "' .. valeur .. '"'
+  end
+  return '{ ' .. table.concat(morceaux, ', ') .. ' }'
+end
+
 function M.page(m)
   local fusions, verifier, versions = {}, {}, {}
   for i, d in ipairs(m.decisions) do
@@ -476,14 +529,17 @@ function M.page(m)
 
   local p = {}
   local function ajouter(texte) p[#p + 1] = texte end
-  ajouter('<!doctype html>\n<html lang="fr"><head><meta charset="utf-8">'
-    .. '<meta name="viewport" content="width=device-width, initial-scale=1"><title>Doublons — rapport avant fusion</title>'
+  ajouter('<!doctype html>\n<html lang="' .. Langue.code() .. '"><head><meta charset="utf-8">'
+    .. '<meta name="viewport" content="width=device-width, initial-scale=1"><title>' .. T('Doublons — rapport avant fusion', 'Duplicates — report before merging') .. '</title>'
     .. '<style>' .. CSS .. '</style></head><body><main data-analyse="' .. h(m.identifiant) .. '">')
-  ajouter('<h1>Doublons — rapport avant fusion</h1>')
-  ajouter('<p><b>Rien n’a été modifié dans Lightroom.</b> Recherche faite sur ' .. h(m.portee) .. ' · ' .. h(m.date)
-    .. ' · analyse ' .. h(m.identifiant) .. '. Pour appliquer ce qui est décrit ici, revenez dans Lightroom et cliquez sur '
+  ajouter('<h1>' .. T('Doublons — rapport avant fusion', 'Duplicates — report before merging') .. '</h1>')
+  ajouter('<p>' .. T('<b>Rien n’a été modifié dans Lightroom.</b> Recherche faite sur ', '<b>Nothing has been changed in Lightroom.</b> Search run on ')
+    .. h(m.portee) .. ' · ' .. h(m.date) .. T(' · analyse ', ' · analysis ') .. h(m.identifiant)
+    .. T('. Pour appliquer ce qui est décrit ici, revenez dans Lightroom et cliquez sur '
     .. '« Fusionner ». Pour écarter un groupe ou forcer un groupe « à vérifier », cochez sa case, copiez le code de '
-    .. 'vos choix (barre ci-dessous) et collez-le dans Lightroom avant de cliquer sur « Fusionner ».</p>')
+    .. 'vos choix (barre ci-dessous) et collez-le dans Lightroom avant de cliquer sur « Fusionner ».', '. To apply what is '
+    .. 'described here, go back to Lightroom and click “Merge”. To leave a group out or force a group “to check”, tick its '
+    .. 'box, copy the code of your choices (bar below) and paste it into Lightroom before clicking “Merge”.') .. '</p>')
 
   ajouter('<div class="resume">')
   -- texte : « singulier|pluriel » (le nombre s'accorde ; une valeur déjà formatée, comme une taille, prend le pluriel).
@@ -493,58 +549,65 @@ function M.page(m)
     ajouter(string.format('<div><b%s>%s</b><span>%s</span></div>', couleur and (' style="color:var(--' .. couleur .. ')"') or '',
       h(valeur), h(accorde or texte)))
   end
-  carteChiffre(#fusions, 'groupe à fusionner|groupes à fusionner', 'garder')
-  carteChiffre(retirees, 'copie retirée (mise de côté)|copies retirées (mises de côté)', 'retirer')
-  carteChiffre(reduites, 'dont copie réduite ou recompressée|dont copies réduites ou recompressées')
-  carteChiffre(taille(octets), 'libérés si vous les supprimez du disque|libérés si vous les supprimez du disque')
-  carteChiffre(nbCollections, 'collection modifiée|collections modifiées')
-  carteChiffre(#verifier, 'groupe à vérifier (rien de fait)|groupes à vérifier (rien de fait)', 'verifier')
-  carteChiffre(#versions, 'groupe de versions conservées|groupes de versions conservées', 'apart')
+  carteChiffre(#fusions, T('groupe à fusionner|groupes à fusionner', 'group to merge|groups to merge'), 'garder')
+  carteChiffre(retirees, T('copie retirée (mise de côté)|copies retirées (mises de côté)', 'copy removed (set aside)|copies removed (set aside)'), 'retirer')
+  carteChiffre(reduites, T('dont copie réduite ou recompressée|dont copies réduites ou recompressées', 'of which downsized or recompressed copy|of which downsized or recompressed copies'))
+  carteChiffre(taille(octets), T('libérés si vous les supprimez du disque|libérés si vous les supprimez du disque', 'freed if you delete them from disk|freed if you delete them from disk'))
+  carteChiffre(nbCollections, T('collection modifiée|collections modifiées', 'collection changed|collections changed'))
+  carteChiffre(#verifier, T('groupe à vérifier (rien de fait)|groupes à vérifier (rien de fait)', 'group to check (nothing done)|groups to check (nothing done)'), 'verifier')
+  carteChiffre(#versions, T('groupe de versions conservées|groupes de versions conservées', 'group of versions kept|groups of versions kept'), 'apart')
   ajouter('</div>')
 
-  ajouter('<p class="legende"><span><i style="background:var(--garder)"></i>copie gardée</span>'
-    .. '<span><i style="background:var(--retirer)"></i>copie retirée</span>'
-    .. '<span><i style="background:var(--verifier)"></i>à vérifier : rien n’est fait</span>'
-    .. '<span><i style="background:var(--apart)"></i>version conservée à part</span></p>')
-  ajouter('<p>Dans chaque groupe fusionné : la copie gardée est la plus grande image (puis, à image identique, la copie '
+  ajouter('<p class="legende"><span><i style="background:var(--garder)"></i>' .. T('copie gardée', 'kept copy') .. '</span>'
+    .. '<span><i style="background:var(--retirer)"></i>' .. T('copie retirée', 'removed copy') .. '</span>'
+    .. '<span><i style="background:var(--verifier)"></i>' .. T('à vérifier : rien n’est fait', 'to check: nothing is done') .. '</span>'
+    .. '<span><i style="background:var(--apart)"></i>' .. T('version conservée à part', 'version kept apart') .. '</span></p>')
+  ajouter('<p>' .. T('Dans chaque groupe fusionné : la copie gardée est la plus grande image (puis, à image identique, la copie '
     .. 'retouchée dans Lightroom, la mieux rangée…). Elle prend la place des copies retirées dans leurs collections '
     .. '(albums Google Photos compris) et récupère leurs mots-clés, leur note, leur drapeau, leur position GPS et leurs '
     .. 'textes quand elle n’en a pas. Les copies retirées sont mises dans la collection « ' .. h(m.collection)
     .. ' » ; vous les retirez ensuite vous-même du catalogue. Si une copie à retirer est retouchée ou a des copies '
     .. 'virtuelles, le groupe reste « à vérifier ». Fusionné de force, ses retouches ne sont pas recopiées, mais ses copies '
-    .. 'virtuelles sont recréées sur la copie gardée (nom, réglages, métadonnées et collections).</p>')
+    .. 'virtuelles sont recréées sur la copie gardée (nom, réglages, métadonnées et collections).',
+    'In each merged group, the kept copy is the largest image (then, for identical images, the copy edited in Lightroom, '
+    .. 'the best filed…). It takes the place of the removed copies in their collections (Google Photos albums included) '
+    .. 'and receives their keywords, rating, flag, GPS position and texts when it has none. The removed copies are put in '
+    .. 'the “' .. h(m.collection) .. '” collection; you then remove them from the catalog yourself. If a copy to remove is '
+    .. 'edited or has virtual copies, the group stays “to check”. When force-merged, its edits are not copied, but its '
+    .. 'virtual copies are recreated on the kept copy (name, settings, metadata and collections).') .. '</p>')
 
-  ajouter('<div class="barre"><input type="search" id="recherche" placeholder="Filtrer par nom ou dossier…">'
-    .. '<label><input type="checkbox" id="seulement-reduites"> copies réduites seulement</label>'
-    .. '<label><input type="checkbox" id="seulement-videos"> vidéos seulement</label>'
-    .. '<label><input type="checkbox" id="seulement-choix"> mes choix seulement</label>'
+  ajouter('<div class="barre"><input type="search" id="recherche" placeholder="' .. T('Filtrer par nom ou dossier…', 'Filter by name or folder…') .. '">'
+    .. '<label><input type="checkbox" id="seulement-reduites"> ' .. T('copies réduites seulement', 'downsized copies only') .. '</label>'
+    .. '<label><input type="checkbox" id="seulement-videos"> ' .. T('vidéos seulement', 'videos only') .. '</label>'
+    .. '<label><input type="checkbox" id="seulement-choix"> ' .. T('mes choix seulement', 'my choices only') .. '</label>'
     .. '<span id="compte" class="notes"></span>'
-    .. '<span class="notes">Aller à : <a href="#fusions">à fusionner</a> · <a href="#verifier">à vérifier</a> · '
-    .. '<a href="#apart">conservées à part</a></span>'
-    .. '<div class="mes-choix"><button type="button" id="fusionner-affiches">Fusionner tous les groupes affichés</button>'
-    .. '<button type="button" id="exclure-affiches">Ne pas fusionner les groupes affichés</button>'
-    .. '<button type="button" id="retablir-affiches">Annuler mes choix sur les groupes affichés</button>'
-    .. '<input id="code" readonly placeholder="Code de vos choix" aria-label="Code de vos choix">'
-    .. '<button type="button" id="copier" class="principal" disabled>Copier le code</button>'
+    .. '<span class="notes">' .. T('Aller à : <a href="#fusions">à fusionner</a> · <a href="#verifier">à vérifier</a> · '
+    .. '<a href="#apart">conservées à part</a>', 'Go to: <a href="#fusions">to merge</a> · <a href="#verifier">to check</a> · '
+    .. '<a href="#apart">kept apart</a>') .. '</span>'
+    .. '<div class="mes-choix"><button type="button" id="fusionner-affiches">' .. T('Fusionner tous les groupes affichés', 'Merge all groups shown') .. '</button>'
+    .. '<button type="button" id="exclure-affiches">' .. T('Ne pas fusionner les groupes affichés', 'Do not merge the groups shown') .. '</button>'
+    .. '<button type="button" id="retablir-affiches">' .. T('Annuler mes choix sur les groupes affichés', 'Clear my choices on the groups shown') .. '</button>'
+    .. '<input id="code" readonly placeholder="' .. T('Code de vos choix', 'Code of your choices') .. '" aria-label="' .. T('Code de vos choix', 'Code of your choices') .. '">'
+    .. '<button type="button" id="copier" class="principal" disabled>' .. T('Copier le code', 'Copy the code') .. '</button>'
     .. '<span id="resume-choix" class="notes"></span></div></div>')
 
   -- Groupes à fusionner, du plus ancien au plus récent.
-  ajouter('<h2 id="fusions">À fusionner <small>' .. pluriel(#fusions, 'groupe') .. '</small></h2>')
+  ajouter('<h2 id="fusions">' .. T('À fusionner', 'To merge') .. ' <small>' .. pluriel(#fusions, T('groupe', 'group')) .. '</small></h2>')
   for _, i in ipairs(triParDate(fusions, function(f) return f.decision.garde.date end)) do
     ajouter(carteDecision(fusions[i].numero, fusions[i].decision, m))
   end
-  if #fusions == 0 then ajouter('<p class="notes">Aucun groupe à fusionner.</p>') end
+  if #fusions == 0 then ajouter('<p class="notes">' .. T('Aucun groupe à fusionner.', 'No group to merge.') .. '</p>') end
 
   if #verifier > 0 then
-    ajouter('<h2 id="verifier">À vérifier <small>' .. pluriel(#verifier, 'groupe') .. ' · rien n’est fait</small></h2>')
+    ajouter('<h2 id="verifier">' .. T('À vérifier', 'To check') .. ' <small>' .. pluriel(#verifier, T('groupe', 'group')) .. T(' · rien n’est fait', ' · nothing is done') .. '</small></h2>')
     for _, i in ipairs(triParDate(verifier, function(f) return f.decision.garde.date end)) do
       ajouter(carteDecision(verifier[i].numero, verifier[i].decision, m))
     end
   end
 
   if #versions > 0 then
-    ajouter('<h2 id="apart">Versions conservées à part <small>' .. pluriel(#versions, 'groupe')
-      .. ' · tout est conservé, sauf fusion forcée</small></h2>')
+    ajouter('<h2 id="apart">' .. T('Versions conservées à part', 'Versions kept apart') .. ' <small>' .. pluriel(#versions, T('groupe', 'group'))
+      .. T(' · tout est conservé, sauf fusion forcée', ' · everything is kept, unless force-merged') .. '</small></h2>')
     for _, i in ipairs(triParDate(versions, function(f) return f.decision.garde.date end)) do
       ajouter(carteDecision(versions[i].numero, versions[i].decision, m))
     end
@@ -553,9 +616,9 @@ function M.page(m)
   if m.notes and #m.notes > 0 then
     local notes = {}
     for i, n in ipairs(m.notes) do notes[i] = h(n) end
-    ajouter('<h2>À savoir</h2><div class="notes">' .. liste(notes) .. '</div>')
+    ajouter('<h2>' .. T('À savoir', 'Good to know') .. '</h2><div class="notes">' .. liste(notes) .. '</div>')
   end
-  ajouter('</main><script>' .. SCRIPT .. '</script></body></html>')
+  ajouter('</main><script>const TXT = ' .. textesScript() .. ';\n' .. SCRIPT .. '</script></body></html>')
   return table.concat(p, '\n')
 end
 

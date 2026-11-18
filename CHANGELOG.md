@@ -3,6 +3,15 @@
 Les numéros suivent le [versionnage sémantique](https://semver.org/lang/fr/) : majeure.mineure.correctif.
 Les versions privées antérieures étaient numérotées par date (jusqu'à 26.11.9).
 
+## 1.1.0
+
+- Langue de l'interface au choix : français (par défaut) ou anglais, dans Fichier → Gestionnaire de modules externes →
+  Deduplicate. Elle vaut pour les dialogues, les messages et les rapports HTML dès la commande suivante. Les titres du
+  menu suivent la langue de Lightroom.
+- Les noms des collections (« Doublons à retirer », « Rafales à retirer ») et du mot-clé « Rafale traitée », le code
+  des choix du rapport et les fichiers de données (historique, CSV, sauvegardes) restent les mêmes dans les deux langues.
+- Tests : interface en anglais, et contrôle que chaque texte traduit garde les mêmes valeurs à insérer.
+
 ## 1.0.2
 
 - Vouvoiement dans toute l'interface (dialogues, messages, rapport HTML) et dans la documentation.

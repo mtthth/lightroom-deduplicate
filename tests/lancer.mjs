@@ -33,16 +33,16 @@ const python = process.env.PYTHON || [
 ].find((p) => existsSync(p)) || surChemin('python3', 'python');
 if (!lua || !python) {
   console.error('Lua 5.3 (texlua de MiKTeX ou lua) et Python 3.12+ sont nécessaires. '
-    + 'Utilise TEXLUA (ou LUA) et PYTHON pour leurs chemins.');
+    + 'Utilisez TEXLUA (ou LUA) et PYTHON pour leurs chemins.');
   process.exit(2);
 }
 
 const suitesLua = [
   'catalogue', 'cas-prioritaires', 'choix', 'collections-rapides', 'copies-virtuelles', 'historique-commun',
   'journal-annulable', 'libelles-restauration', 'libelles-personnalises', 'retouches-video', 'rafales-sessions', 'rapport-doublons', 'rapport-rafales',
-  'revalidation-fichiers', 'migration', 'sauvegarde-collections', 'trace-lectures', 'vignettes-ping', 'recherche-cache', 'empreintes-jpeg',
+  'revalidation-fichiers', 'migration', 'langue', 'sauvegarde-collections', 'trace-lectures', 'vignettes-ping', 'recherche-cache', 'empreintes-jpeg',
 ];
-const suitesPython = ['test_cache_analyses', 'test_collections_readonly'];
+const suitesPython = ['test_cache_analyses', 'test_collections_readonly', 'test_traductions'];
 const scratch = mkdtempSync(path.join(os.tmpdir(), 'deduplicate-tests-'));
 let echecs = 0;
 function lancer(nom, executable, args) {

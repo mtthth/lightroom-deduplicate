@@ -8,7 +8,8 @@ losing any of their organisation, and thins out bursts by keeping only the best 
 The plug-in never deletes a file. Discarded copies are gathered in a "Doublons à retirer" (duplicates to remove)
 collection: removing them from the catalog is up to you.
 
-> The plug-in's interface and its full user guide are in French. This page summarises what it does.
+> The interface is available in French and English (plug-in setting). The full user guide is in French; this page
+> summarises what it does.
 
 ## What it does
 
@@ -47,15 +48,16 @@ As with any tool that changes a catalog, back up your catalog before the first r
 2. In Lightroom Classic: **File → Plug-in Manager → Add**, then choose the `lightroom-deduplicate.lrplugin` folder.
 3. The commands appear under **Library → Plug-in Extras**.
 
+Choose the interface language (French by default, or English) in **File → Plug-in Manager → Deduplicate**.
+
 The plug-in writes its reports, backups and logs next to the `lightroom-deduplicate.lrplugin` folder: put it in a
 folder you can write to.
 
 ## Getting started
 
-1. Open a folder or collection (or select a few photos), then run
-   **Rechercher les doublons pour fusion…** (find duplicates to merge).
-2. Click **Voir le rapport** (view report) and review the groups. Tick "Ne pas fusionner" (don't merge) or
-   "Fusionner de force" (force merge) where needed, then **Copier le code** (copy code) and paste it into Lightroom.
+1. Open a folder or collection (or select a few photos), then run **Find duplicates to merge…**.
+2. Click **Open the report** and review the groups. Tick “Do not merge” or “Force merge” where needed, then
+   **Copy the code** and paste it into Lightroom.
 3. Confirm. Discarded copies are in "Doublons à retirer"; to really remove them, select them in
    **Catalog → All Photographs**, then **Delete → Remove**.
 
@@ -65,7 +67,7 @@ rules, virtual copies, backups and restoring.
 ## Limitations
 
 - Windows only: ImageMagick, ffmpeg and Python are looked up at their Windows locations.
-- French user interface.
+- French or English interface (plug-in setting); menu titles follow Lightroom’s language.
 - A copy is only found if its duplicates are among the analysed photos (selection or current view).
 
 ## Optional companion plug-in
@@ -80,7 +82,7 @@ download photos that Deduplicate has already set aside.
 node tests/lancer.mjs
 ```
 
-The 20 Lua suites and 2 Python suites run outside Lightroom on synthetic data, with Node 22+, Lua 5.3 (MiKTeX `texlua` or `lua`)
+The 21 Lua suites and 3 Python suites run outside Lightroom on synthetic data, with Node 22+, Lua 5.3 (MiKTeX `texlua` or `lua`)
 and Python 3.12+. The `LUA` and `PYTHON` variables select the executables. They also run on GitHub on every push
 (`.github/workflows/tests.yml`).
 

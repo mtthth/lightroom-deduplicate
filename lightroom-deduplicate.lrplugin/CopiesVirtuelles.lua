@@ -18,6 +18,7 @@ local LrTasks = import 'LrTasks'
 local Doublons = require 'Doublons'
 
 local M = {}
+local T = require('Langue').t
 
 local SANS_PROGRESSION = {
   isCanceled = function() return false end, setCaption = function() end, setPortionComplete = function() end,
@@ -29,7 +30,7 @@ end
 
 -- Nom d'une copie virtuelle pour les messages : « IMG_1.jpg « Noir et blanc » ».
 function M.decrire(source)
-  return nomFichier(source.chemin) .. ((source.nomCopie or '') ~= '' and (' « ' .. source.nomCopie .. ' »') or '')
+  return nomFichier(source.chemin) .. ((source.nomCopie or '') ~= '' and T(' « ' .. source.nomCopie .. ' »', ' “' .. source.nomCopie .. '”') or '')
 end
 
 -- Copies virtuelles à recréer pour une décision, dans l'ordre des copies écartées. virtuellesDe(c) renvoie les
@@ -67,7 +68,7 @@ function M.lire(catalogue, decisions, lireCollections, progression)
     end
   end
   if not avec then return entrees end
-  progression:setCaption('Lecture des copies virtuelles des copies écartées…')
+  progression:setCaption(T('Lecture des copies virtuelles des copies écartées…', 'Reading the virtual copies of the discarded copies…'))
   local candidates = {}
   for _, d in ipairs(decisions) do
     for _, e in ipairs(M.aRecreer(d, function(c) return c.photo:getRawMetadata('virtualCopies') end)) do
@@ -82,12 +83,12 @@ function M.lire(catalogue, decisions, lireCollections, progression)
   for _, cle in ipairs(Doublons.CHAMPS_TEXTE) do champs[#champs + 1] = cle end
   local formatees = catalogue:batchGetFormattedMetadata(photos, champs)
   local appartenances = lireCollections(photos)
-  if not appartenances then error('Lecture des copies virtuelles interrompue. Rien n’a été modifié.', 0) end
+  if not appartenances then error(T('Lecture des copies virtuelles interrompue. Rien n’a été modifié.', 'Reading virtual copies interrupted. Nothing has been changed.'), 0) end
   for _, e in ipairs(candidates) do
     local s = e.source
     local b, f = brutes[s.photo] or {}, formatees[s.photo] or {}
     if not b.isVirtualCopy then
-      error('Une copie virtuelle de ' .. nomFichier(s.chemin) .. ' n’a pas pu être relue. Rien n’a été modifié.', 0)
+      error(T('Une copie virtuelle de ' .. nomFichier(s.chemin) .. ' n’a pas pu être relue. Rien n’a été modifié.', 'A virtual copy of ' .. nomFichier(s.chemin) .. ' could not be re-read. Nothing has been changed.'), 0)
     end
     s.nomCopie = f.copyName or ''
     s.note, s.drapeau, s.gps = b.rating or 0, b.pickStatus or 0, b.gps
@@ -179,6 +180,10 @@ end
 function M.completerErreur(erreur, entrees)
   local n = nbCreees(entrees)
   if n == 0 then return tostring(erreur) end
+  if require('Langue').anglais() then
+    return tostring(erreur) .. string.format('\n\n%d virtual cop%s already created on the kept copies, without the settings '
+      .. 'of the old ones: Ctrl+Z (repeated) undoes them, or remove them from the catalog.', n, n > 1 and 'ies' or 'y')
+  end
   return tostring(erreur) .. string.format('\n\n%d copie%s virtuelle%s déjà créée%s sur les copies gardées, sans les '
     .. 'réglages des anciennes : Ctrl+Z (répété) les annule, ou retirez-les du catalogue.', n,
     n > 1 and 's' or '', n > 1 and 's' or '', n > 1 and 's' or '')
@@ -230,27 +235,30 @@ function M.creer(catalogue, entrees, corbeilles, progression)
   local ok, erreur = LrTasks.pcall(function()
     for _, e in ipairs(entrees) do
       if not selectionner(catalogue, e.decision.garde.photo) then
-        error('La copie gardée ' .. nomFichier(e.decision.garde.chemin) .. ' n’a pas pu être sélectionnée : elle n’est '
+        error(T('La copie gardée ' .. nomFichier(e.decision.garde.chemin) .. ' n’a pas pu être sélectionnée : elle n’est '
           .. 'pas affichée dans la grille, ou un filtre la masque. Il faut la sélectionner pour lui créer les copies '
           .. 'virtuelles de ' .. nomFichier(e.retiree.chemin) .. '. Affichez son dossier, retirez le filtre, puis relancez. '
-          .. 'Rien n’a été modifié.', 0)
+          .. 'Rien n’a été modifié.', 'The kept copy ' .. nomFichier(e.decision.garde.chemin) .. ' could not be selected: it is '
+          .. 'not shown in the grid, or a filter hides it. It must be selected to create the virtual copies of '
+          .. nomFichier(e.retiree.chemin) .. ' on it. Show its folder, remove the filter, then run again. Nothing has been changed.'), 0)
       end
     end
     for i, e in ipairs(entrees) do
-      if progression:isCanceled() then error('Fusion annulée : aucune fusion n’a été appliquée.', 0) end
-      progression:setCaption(string.format('Création des copies virtuelles sur les copies gardées : %d / %d', i, #entrees))
+      if progression:isCanceled() then error(T('Fusion annulée : aucune fusion n’a été appliquée.', 'Merge cancelled: no merge was applied.'), 0) end
+      progression:setCaption(string.format(T('Création des copies virtuelles sur les copies gardées : %d / %d', 'Creating virtual copies on the kept copies: %d / %d'), i, #entrees))
       local garde = e.decision.garde
       local maitre = garde.virtuelle and garde.maitre or garde.photo
       if not selectionner(catalogue, garde.photo) then
-        error('La copie gardée ' .. nomFichier(garde.chemin) .. ' n’est plus sélectionnable. Aucune fusion n’a été appliquée.', 0)
+        error(T('La copie gardée ' .. nomFichier(garde.chemin) .. ' n’est plus sélectionnable. Aucune fusion n’a été appliquée.', 'The kept copy ' .. nomFichier(garde.chemin) .. ' can no longer be selected. No merge was applied.'), 0)
       end
       local nouvelles = catalogue:createVirtualCopies(e.source.nomCopie ~= '' and e.source.nomCopie or nil) or {}
       entrees.creees = entrees.creees + #nouvelles
       local n = nouvelles[1]
       local maitreLu = n and #nouvelles == 1 and n:getRawMetadata('isVirtualCopy') and n:getRawMetadata('masterPhoto')
       if not maitreLu or maitreLu.localIdentifier ~= maitre.localIdentifier then
-        error(string.format('Lightroom a créé %d copie(s) virtuelle(s) au lieu d’une copie virtuelle de %s. Aucune fusion '
-          .. 'n’a été appliquée.', #nouvelles, nomFichier(garde.chemin)), 0)
+        error(string.format(T('Lightroom a créé %d copie(s) virtuelle(s) au lieu d’une copie virtuelle de %s. Aucune fusion '
+          .. 'n’a été appliquée.', 'Lightroom created %d virtual cop(ies) instead of one virtual copy of %s. No merge was applied.'),
+          #nouvelles, nomFichier(garde.chemin)), 0)
       end
       e.nouvelle = { photo = n, id = n.localIdentifier }
       progression:setPortionComplete(i, #entrees)
@@ -264,7 +272,7 @@ end
 -- La nouvelle copie prend la place de l'ancienne. À appeler dans l'accès en écriture de la fusion.
 function M.appliquer(e, corbeille)
   local ef, n, ancienne = e.effets, e.nouvelle.photo, e.source.photo
-  n:applyDevelopSettings(e.reglages, 'Réglages de la copie virtuelle de ' .. nomFichier(e.retiree.chemin))
+  n:applyDevelopSettings(e.reglages, T('Réglages de la copie virtuelle de ', 'Settings of the virtual copy of ') .. nomFichier(e.retiree.chemin))
   for _, col in ipairs(e.sortir) do col.objet:removePhotos({ n }) end
   for _, col in ipairs(ef.corbeillesGardee) do col.objet:removePhotos({ n }) end
   for _, col in ipairs(ef.collections) do col.objet:addPhotos({ n }) end
@@ -290,19 +298,27 @@ end
 -- Paragraphe du bilan de fusion, ou '' sans copie virtuelle recréée.
 function M.bilan(entrees, ecarts, collection)
   if #entrees == 0 then return '' end
-  local texte = string.format('\n\n%d copie%s virtuelle%s recréée%s sur les copies gardées (réglages, nom de copie, '
-    .. 'métadonnées, collections). Les anciennes sont dans « %s » avec leur original.', #entrees,
-    #entrees > 1 and 's' or '', #entrees > 1 and 's' or '', #entrees > 1 and 's' or '', collection)
-    .. '\nLeur création est une action Lightroom distincte de la fusion : après Ctrl+Z de la fusion, elles restent '
-    .. 'sur les copies gardées, sans les réglages des anciennes, jusqu’aux Ctrl+Z suivants.'
+  local texte
+  if require('Langue').anglais() then
+    texte = string.format('\n\n%d virtual cop%s recreated on the kept copies (settings, copy name, metadata, collections). '
+      .. 'The old ones are in “%s” with their original.', #entrees, #entrees > 1 and 'ies' or 'y', collection)
+      .. '\nTheir creation is a Lightroom action separate from the merge: after Ctrl+Z of the merge, they stay on the kept '
+      .. 'copies, without the settings of the old ones, until the following Ctrl+Z.'
+  else
+    texte = string.format('\n\n%d copie%s virtuelle%s recréée%s sur les copies gardées (réglages, nom de copie, '
+      .. 'métadonnées, collections). Les anciennes sont dans « %s » avec leur original.', #entrees,
+      #entrees > 1 and 's' or '', #entrees > 1 and 's' or '', #entrees > 1 and 's' or '', collection)
+      .. '\nLeur création est une action Lightroom distincte de la fusion : après Ctrl+Z de la fusion, elles restent '
+      .. 'sur les copies gardées, sans les réglages des anciennes, jusqu’aux Ctrl+Z suivants.'
+  end
   if #ecarts > 0 then
-    texte = texte .. '\n\nRéglages relus différents de ceux des anciennes copies : compare-les avant de retirer les copies '
-      .. 'écartées.'
+    texte = texte .. T('\n\nRéglages relus différents de ceux des anciennes copies : comparez-les avant de retirer les copies '
+      .. 'écartées.', '\n\nSettings read back differ from those of the old copies: compare them before removing the discarded copies.')
     for _, ecart in ipairs(ecarts) do
       local cles = {}
       for i = 1, math.min(5, #ecart.cles) do cles[i] = ecart.cles[i] end
       texte = texte .. '\n• ' .. M.decrire(ecart.entree.source) .. ' : ' .. table.concat(cles, ', ')
-        .. (#ecart.cles > 5 and string.format('… (%d réglages)', #ecart.cles) or '')
+        .. (#ecart.cles > 5 and string.format(T('… (%d réglages)', '… (%d settings)'), #ecart.cles) or '')
     end
   end
   return texte

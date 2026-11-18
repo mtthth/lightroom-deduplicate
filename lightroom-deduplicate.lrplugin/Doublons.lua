@@ -33,17 +33,24 @@ local Similitude = require 'Similitude'
 local M = {}
 
 -- Collection où la fusion rassemble les copies en trop, en attendant que vous les retiriez du catalogue.
-M.COLLECTION = 'Doublons à retirer'
+local T = require('Langue').t
+M.COLLECTION = 'Doublons à retirer'   -- nom de collection : le même dans toutes les langues
 
 -- Champs de texte recopiés sur la copie gardée quand elle n'a rien dans le champ (clés de
 -- getFormattedMetadata et de setRawMetadata), avec leur nom affiché.
 M.CHAMPS_TEXTE = { 'label', 'title', 'caption', 'headline', 'creator', 'copyright', 'location', 'city',
   'stateProvince', 'country', 'isoCountryCode', 'personShown', 'event' }
-M.NOMS_CHAMPS = {
-  label = 'Libellé de couleur', title = 'Titre', caption = 'Légende', headline = 'Titre court', creator = 'Auteur',
-  copyright = 'Copyright', location = 'Lieu', city = 'Ville', stateProvince = 'Région', country = 'Pays',
-  isoCountryCode = 'Code du pays', personShown = 'Personnes', event = 'Événement',
+local NOMS_CHAMPS = {
+  label = { 'Libellé de couleur', 'Color label' }, title = { 'Titre', 'Title' }, caption = { 'Légende', 'Caption' },
+  headline = { 'Titre court', 'Headline' }, creator = { 'Auteur', 'Creator' }, copyright = { 'Copyright', 'Copyright' },
+  location = { 'Lieu', 'Location' }, city = { 'Ville', 'City' }, stateProvince = { 'Région', 'State / Province' },
+  country = { 'Pays', 'Country' }, isoCountryCode = { 'Code du pays', 'Country code' }, personShown = { 'Personnes', 'Person shown' },
+  event = { 'Événement', 'Event' },
 }
+function M.nomChamp(cle)
+  local n = NOMS_CHAMPS[cle]
+  return n and T(n[1], n[2]) or cle
+end
 
 local INCONNU = math.huge
 
@@ -173,17 +180,17 @@ end
 
 -- Premier critère (dans l'ordre de `meilleure`) qui place a, la copie gardée, devant b, la suivante.
 local function raisonDuChoix(a, b)
-  if a.pixels ~= b.pixels then return 'la plus grande image' end
-  if a.octetsImage ~= b.octetsImage then return 'le fichier le plus lourd (mêmes dimensions)' end
-  if a.dejaEcartee ~= b.dejaEcartee then return 'les autres copies avaient déjà été écartées' end
-  if a.retouchee ~= b.retouchee then return 'retouchée dans Lightroom' end
-  if a.avecVirtuelles ~= b.avecVirtuelles then return 'a des copies virtuelles' end
-  if a.rang ~= b.rang then return 'dossier mieux rangé' end
-  if a.ecart ~= b.ecart then return 'dossier dont la date correspond le mieux à la prise de vue' end
-  if a.profondeur ~= b.profondeur then return 'dossier plus détaillé' end
-  if a.suffixe ~= b.suffixe then return 'nom sans suffixe de copie' end
-  if a.annotee ~= b.annotee then return 'déjà annotée (note, mots-clés, textes…)' end
-  return 'importée la première'
+  if a.pixels ~= b.pixels then return T('la plus grande image', 'the largest image') end
+  if a.octetsImage ~= b.octetsImage then return T('le fichier le plus lourd (mêmes dimensions)', 'the heaviest file (same dimensions)') end
+  if a.dejaEcartee ~= b.dejaEcartee then return T('les autres copies avaient déjà été écartées', 'the other copies had already been set aside') end
+  if a.retouchee ~= b.retouchee then return T('retouchée dans Lightroom', 'edited in Lightroom') end
+  if a.avecVirtuelles ~= b.avecVirtuelles then return T('a des copies virtuelles', 'has virtual copies') end
+  if a.rang ~= b.rang then return T('dossier mieux rangé', 'better filed folder') end
+  if a.ecart ~= b.ecart then return T('dossier dont la date correspond le mieux à la prise de vue', 'folder whose date best matches the capture date') end
+  if a.profondeur ~= b.profondeur then return T('dossier plus détaillé', 'more detailed folder') end
+  if a.suffixe ~= b.suffixe then return T('nom sans suffixe de copie', 'name without a copy suffix') end
+  if a.annotee ~= b.annotee then return T('déjà annotée (note, mots-clés, textes…)', 'already annotated (rating, keywords, texts…)') end
+  return T('importée la première', 'imported first')
 end
 
 -- copies : les copies d'un même fichier (deux au moins) ; refus : le refus mémorisé qui réunit ces copies
@@ -260,21 +267,21 @@ function M.decider(copies, refus)
   end
   local raison = nil
   if refus then
-    raison = 'vous avez choisi de ne pas fusionner ces fichiers le ' .. refus.date
+    raison = T('vous avez choisi de ne pas fusionner ces fichiers le ', 'you chose not to merge these files on ') .. refus.date
   elseif erreurVideo then
-    raison = 'impossible de vérifier les réglages vidéo : ' .. erreurVideo
+    raison = T('impossible de vérifier les réglages vidéo : ', 'video settings could not be checked: ') .. erreurVideo
   elseif nbRetouchees > 1 then
-    raison = 'plusieurs copies retouchées'
+    raison = T('plusieurs copies retouchées', 'several edited copies')
   elseif nbVirtuelles > 1 then
-    raison = 'plusieurs copies ont des copies virtuelles'
+    raison = T('plusieurs copies ont des copies virtuelles', 'several copies have virtual copies')
   elseif publiee then
-    raison = 'une copie à retirer est publiée'
+    raison = T('une copie à retirer est publiée', 'a copy to remove is published')
   elseif travailPerdu then
-    raison = 'une copie à retirer est retouchée ou a des copies virtuelles'
+    raison = T('une copie à retirer est retouchée ou a des copies virtuelles', 'a copy to remove is edited or has virtual copies')
   elseif meilleureEcartee then
-    raison = 'la meilleure image est une copie déjà écartée lors d’une fusion précédente'
+    raison = T('la meilleure image est une copie déjà écartée lors d’une fusion précédente', 'the best image is a copy already set aside by an earlier merge')
   elseif not M.comparaisonsValides({ garde = liste[1].copie, retirees = retirees }) then
-    raison = 'les ressemblances en chaîne ne prouvent pas la même vue que la copie gardée'
+    raison = T('les ressemblances en chaîne ne prouvent pas la même vue que la copie gardée', 'chained similarities do not prove the same view as the kept copy')
   end
   local memeImage = true
   for _, c in ipairs(copies) do
@@ -293,7 +300,7 @@ function M.decider(copies, refus)
     end
   end
   if not raison and tournee then
-    raison = 'copies d’orientations différentes : garder (fusion forcée) celle qui est bien orientée'
+    raison = T('copies d’orientations différentes : garder (fusion forcée) celle qui est bien orientée', 'copies with different orientations: keep (forced merge) the one that is correctly oriented')
   end
   -- Une version dont le nom annonce une retouche (« _filtered », « -Modifier », DxO…) et dont l'image
   -- diffère d'une autre copie est proposée, jamais fusionnée sans fusion forcée : la miniature ne dit pas
@@ -307,20 +314,24 @@ function M.decider(copies, refus)
     end
   end
   if not raison and versionRetouchee then
-    raison = 'version retouchée d’après son nom (« _filtered », « -Modifier », DxO…) : '
-      .. 'fusionner de force seulement si la retouche peut être perdue, en choisissant la copie à garder'
+    raison = T('version retouchée d’après son nom (« _filtered », « -Modifier », DxO…) : '
+      .. 'fusionner de force seulement si la retouche peut être perdue, en choisissant la copie à garder',
+      'edited version according to its name (“_filtered”, “-Edit”, DxO…): force-merge only if the edit can be lost, '
+      .. 'choosing the copy to keep')
   end
   if not raison and not memeImage then
     local memeNom = true
     for _, c in ipairs(copies) do
       if M.nomDeBase(c.chemin) ~= M.nomDeBase(copies[1].chemin) then memeNom = false end
     end
-    raison = memeNom and 'images seulement ressemblantes : vérifier les détails avant de fusionner'
-      or 'même vue d’après la miniature, mais noms différents : vérifier qu’il s’agit bien de la même photo'
+    raison = memeNom and T('images seulement ressemblantes : vérifier les détails avant de fusionner',
+        'images only look alike: check the details before merging')
+      or T('même vue d’après la miniature, mais noms différents : vérifier qu’il s’agit bien de la même photo',
+        'same view according to the thumbnail, but different names: check that it really is the same photo')
   end
   return {
     garde = liste[1].copie, retirees = retirees, aVerifier = raison, memeImage = memeImage,
-    pourquoi = meilleureEcartee and 'les copies à meilleure image avaient déjà été écartées'
+    pourquoi = meilleureEcartee and T('les copies à meilleure image avaient déjà été écartées', 'the copies with a better image had already been set aside')
       or raisonDuChoix(liste[1], liste[2]),
   }
 end
@@ -329,13 +340,16 @@ end
 -- recadrée…) : jamais fusionnées d'office, mais le rapport propose de les fusionner de force. La copie
 -- proposée suit la même règle que pour un groupe ordinaire ; la raison reste celle des versions, sauf refus
 -- mémorisé.
-M.RAISON_VERSIONS = 'images différentes d’après la miniature (version retouchée, recadrée ou recompressée) : '
-  .. 'fusionner de force seulement s’il s’agit bien de la même photo'
+function M.raisonVersions()
+  return T('images différentes d’après la miniature (version retouchée, recadrée ou recompressée) : '
+    .. 'fusionner de force seulement s’il s’agit bien de la même photo', 'different images according to the thumbnail '
+    .. '(edited or recompressed version): force-merge only if it really is the same photo')
+end
 
 function M.deciderVersions(copies, refus)
   local d = M.decider(copies, refus)
   d.versions = true
-  if not refus then d.aVerifier = M.RAISON_VERSIONS end
+  if not refus then d.aVerifier = M.raisonVersions() end
   return d
 end
 
@@ -375,7 +389,7 @@ function M.annoncesVirtuelles(decision)
   for _, c in ipairs(decision.retirees) do
     if M.virtuellesRecreees(c, decision.garde) then
       lignes[#lignes + 1] = (c.chemin:match('[^/\\]+$') or c.chemin)
-        .. ' a des copies virtuelles : elles seront recréées sur la copie gardée'
+        .. T(' a des copies virtuelles : elles seront recréées sur la copie gardée', ' has virtual copies: they will be recreated on the kept copy')
     end
   end
   return lignes
@@ -390,18 +404,18 @@ function M.avertissements(decision, retouchesConnues)
   end
   for _, c in ipairs(decision.retirees) do
     if c.video and (not retouchesConnues or c.retouchee) then
-      ajouter(c, ' est une vidéo : ses coupes et réglages vidéo ne seront pas transférés')
+      ajouter(c, T(' est une vidéo : ses coupes et réglages vidéo ne seront pas transférés', ' is a video: its trims and video settings will not be transferred'))
     end
     if not retouchesConnues then
-      ajouter(c, ' : les éventuelles retouches Lightroom ne seront pas transférées (présence non vérifiée)')
+      ajouter(c, T(' : les éventuelles retouches Lightroom ne seront pas transférées (présence non vérifiée)', ': any Lightroom edits will not be transferred (not checked)'))
     elseif c.retouchee and not c.video then
-      ajouter(c, ' est retouchée dans Lightroom : ses réglages ne seront pas transférés')
+      ajouter(c, T(' est retouchée dans Lightroom : ses réglages ne seront pas transférés', ' is edited in Lightroom: its settings will not be transferred'))
     end
-    if c.virtuelle then ajouter(c, ' est une copie virtuelle') end
+    if c.virtuelle then ajouter(c, T(' est une copie virtuelle', ' is a virtual copy')) end
     if (c.virtuelles or 0) > 0 and not M.virtuellesRecreees(c, decision.garde) then
-      ajouter(c, ' a des copies virtuelles : elles ne seront pas recréées (vidéo)')
+      ajouter(c, T(' a des copies virtuelles : elles ne seront pas recréées (vidéo)', ' has virtual copies: they will not be recreated (video)'))
     end
-    if c.publiee then ajouter(c, ' est dans une collection publiée') end
+    if c.publiee then ajouter(c, T(' est dans une collection publiée', ' is in a published collection')) end
   end
   return avertissements
 end
@@ -498,7 +512,9 @@ function M.dejaFusionne(decision)
     and e.note == nil and e.drapeau == nil and e.gps == nil
 end
 
-M.RAISON_REUNIS = 'plusieurs groupes à vérifier réunis par une photo commune : choisir la copie à garder'
+function M.raisonReunis()
+  return T('plusieurs groupes à vérifier réunis par une photo commune : choisir la copie à garder', 'several groups to check joined by a shared photo: choose the copy to keep')
+end
 
 -- Les groupes « à vérifier » et de versions conservées à part qui partagent une photo (une même photo peut
 -- ressortir de la recherche des doublons et de celle des versions) sont réunis en un seul groupe : une
@@ -560,7 +576,7 @@ function M.reunirChevauchements(decisions, decider)
       end
       local reuni = decider(copies, versions)
       -- Chaque groupe réuni était à vérifier : le groupe réuni l'est aussi, quoi qu'en dise la règle de choix.
-      if not reuni.aVerifier then reuni.aVerifier = M.RAISON_REUNIS end
+      if not reuni.aVerifier then reuni.aVerifier = M.raisonReunis() end
       reuni.reunis = #m
       resultat[#resultat + 1] = reuni
     end

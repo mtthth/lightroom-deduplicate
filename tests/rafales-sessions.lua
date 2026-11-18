@@ -36,7 +36,7 @@ end
 local reglages = dofile('lightroom-deduplicate.lrplugin/Reglages.lua')
 local props = { observateurs = {}, addObserver = function(self, cle, f) self.observateurs[cle] = f end }
 local factory = { static_text = function(_, v) return v end, row = function(_, v) return v end,
-  edit_field = function(_, v) return v end }
+  edit_field = function(_, v) return v end, popup_menu = function(_, v) return v end }
 reglages.sectionsForTopOfDialog(factory, props)
 assert(props.motCollectionRafales == 'sessions')
 props.observateurs.motCollectionRafales(nil, nil, '')

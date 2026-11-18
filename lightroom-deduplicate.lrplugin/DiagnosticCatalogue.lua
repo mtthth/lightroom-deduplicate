@@ -11,13 +11,14 @@ local CollectionsRapides = dofile(LrPathUtils.child(_PLUGIN.path, 'CollectionsRa
 LrTasks.startAsyncTask(function()
   LrFunctionContext.callWithContext('diagnosticCatalogue', function(contexte)
     local chemin = LrPathUtils.child(LrPathUtils.parent(_PLUGIN.path), 'diagnostic-catalogue.txt')
-    local lignes = { 'Diagnostic de lecture du catalogue - ' .. os.date('%Y-%m-%d %H:%M:%S') }
+    local T = require('Langue').t
+    local lignes = { T('Diagnostic de lecture du catalogue - ', 'Catalog reading diagnostic - ') .. os.date('%Y-%m-%d %H:%M:%S') }
     local function enregistrer(texte)
       lignes[#lignes + 1] = texte
       local f = assert(io.open(chemin, 'wb'))
       f:write(table.concat(lignes, '\n') .. '\n'); f:close()
     end
-    local progression = LrProgressScope { title = 'Diagnostic des lectures du catalogue', functionContext = contexte }
+    local progression = LrProgressScope { title = T('Diagnostic des lectures du catalogue', 'Catalog reading diagnostic'), functionContext = contexte }
     local function mesurer(nom, lire)
       progression:setCaption(nom)
       local debut = LrDate.currentTime()
@@ -28,19 +29,19 @@ LrTasks.startAsyncTask(function()
     local ok, erreur = LrTasks.pcall(function()
       local catalogue = LrApplication.activeCatalog()
       local photo = catalogue:getTargetPhoto()
-      if not photo then error('Sélectionnez une photo avant le diagnostic.', 0) end
+      if not photo then error(T('Sélectionnez une photo avant le diagnostic.', 'Select a photo before the diagnostic.'), 0) end
       local photos = {}
       for i, p in ipairs(catalogue:getTargetPhotos()) do
         if i > 100 then break end
         photos[#photos + 1] = p
       end
-      mesurer('Lecture groupée de ' .. #photos .. ' photos sélectionnées (maximum 100)', function()
+      mesurer(T('Lecture groupée de ' .. #photos .. ' photos sélectionnées (maximum 100)', 'Batch read of ' .. #photos .. ' selected photos (100 at most)'), function()
         local resultat = CollectionsRapides.lire(catalogue, photos, progression, {}, true)
-        if not resultat then error('Diagnostic annulé.', 0) end
+        if not resultat then error(T('Diagnostic annulé.', 'Diagnostic cancelled.'), 0) end
       end)
     end)
-    if not ok then enregistrer('ERREUR : ' .. tostring(erreur)) end
+    if not ok then enregistrer(T('ERREUR : ', 'ERROR: ') .. tostring(erreur)) end
     progression:done()
-    LrDialogs.message('Diagnostic du catalogue', table.concat(lignes, '\n'), ok and 'info' or 'critical')
+    LrDialogs.message(T('Diagnostic du catalogue', 'Catalog diagnostic'), table.concat(lignes, '\n'), ok and 'info' or 'critical')
   end)
 end)

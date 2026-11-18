@@ -130,7 +130,7 @@ do
   local v1, v2 = Doublons.decider({ x1, x2 }), Doublons.decider({ x2, x3 })
   v1.aVerifier, v2.aVerifier = 'test', 'test'
   local r = Doublons.reunirChevauchements({ v1, v2 }, function(copies) return Doublons.decider(copies) end)
-  assert(#r == 1 and r[1].aVerifier == Doublons.RAISON_REUNIS and not r[1].versions)
+  assert(#r == 1 and r[1].aVerifier == Doublons.raisonReunis() and not r[1].versions)
 end
 
 print('Choix du rapport : OK')

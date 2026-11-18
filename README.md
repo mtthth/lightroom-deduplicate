@@ -47,6 +47,9 @@ Comme pour tout outil qui touche un catalogue, faites une sauvegarde du catalogu
    `lightroom-deduplicate.lrplugin`.
 3. Les commandes apparaissent dans **Bibliothèque → Options du module externe**.
 
+La langue de l'interface (français par défaut, ou anglais) se choisit dans **Fichier → Gestionnaire de modules
+externes → Deduplicate**.
+
 Le module écrit ses rapports, sauvegardes et journaux à côté du dossier `lightroom-deduplicate.lrplugin` : placez-le
 dans un dossier où vous avez le droit d'écrire.
 
@@ -54,7 +57,7 @@ dans un dossier où vous avez le droit d'écrire.
 
 1. Ouvrez un dossier ou une collection (ou sélectionnez quelques photos), puis lancez
    **Rechercher les doublons pour fusion…**.
-2. Cliquez sur **Voir le rapport** et parcourez les groupes. Cochez « Ne pas fusionner » ou « Fusionner de force » si
+2. Cliquez sur **Ouvrir le rapport** et parcourez les groupes. Cochez « Ne pas fusionner » ou « Fusionner de force » si
    besoin, puis **Copier le code** et collez-le dans Lightroom.
 3. Confirmez. Les copies écartées sont dans « Doublons à retirer » ; pour les retirer vraiment, sélectionnez-les dans
    **Catalogue → Toutes les photos**, puis **Suppr → Retirer**.
@@ -65,7 +68,7 @@ choix, les copies virtuelles, les sauvegardes et la restauration.
 ## Limites
 
 - Windows uniquement : ImageMagick, ffmpeg et Python sont cherchés à leurs emplacements Windows.
-- Interface en français.
+- Interface en français ou en anglais (réglage du module) ; les titres du menu suivent la langue de Lightroom.
 - Une copie n'est trouvée que si ses doublons font partie des photos analysées (sélection ou vue courante).
 
 ## Module voisin facultatif
@@ -80,7 +83,7 @@ au téléchargement les photos déjà retirées par Deduplicate.
 node tests/lancer.mjs
 ```
 
-Les 20 suites Lua et 2 suites Python tournent hors de Lightroom, sur des données synthétiques, avec Node 22+,
+Les 21 suites Lua et 3 suites Python tournent hors de Lightroom, sur des données synthétiques, avec Node 22+,
 Lua 5.3 (`texlua` de MiKTeX ou `lua`) et Python 3.12+. Les variables `LUA` et `PYTHON` permettent de choisir les
 exécutables. Elles tournent aussi sur GitHub à chaque envoi (`.github/workflows/tests.yml`).
 

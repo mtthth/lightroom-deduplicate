@@ -15,7 +15,7 @@ function M.lectureGroupee(catalogue, lire, messageOccupe)
     resultat = lire()
   end, { timeout = 5 })
   if statut ~= 'executed' then
-    error(messageOccupe or 'Le catalogue est occupé : lecture interrompue après 5 secondes. Aucune fusion n’a été appliquée.', 0)
+    error(messageOccupe or require('Langue').t('Le catalogue est occupé : lecture interrompue après 5 secondes. Aucune fusion n’a été appliquée.', 'The catalog is busy: reading stopped after 5 seconds. No merge was applied.'), 0)
   end
   return resultat
 end
@@ -31,7 +31,7 @@ function M.lireAppartenances(catalogue, photos, progression, corbeilles, complet
   for debut = 1, #photos, 25 do
     if progression:isCanceled() then return nil end
     local fin = math.min(debut + 24, #photos)
-    progression:setCaption(string.format('Lecture des collections et publications : %d / %d', debut, #photos))
+    progression:setCaption(string.format(require('Langue').t('Lecture des collections et publications : %d / %d', 'Reading collections and publications: %d / %d'), debut, #photos))
     local lot = { numero = debut, total = #photos, id = photos[debut].localIdentifier,
       chemin = diagnostic and diagnostic.chemins[photos[debut]] }
     local termine = appel(lot, 'accès au catalogue (lot ' .. debut .. '-' .. fin .. ')', function()
@@ -185,7 +185,7 @@ function M.etiquetteCollection(collection, complet, progressionEtape, cache, app
     profondeur = profondeur + 1
     local id = parent.localIdentifier
     if profondeur > 100 or (id and visites[id]) then
-      error('Hiérarchie de collections invalide ou trop profonde : lecture interrompue.', 0)
+      error(require('Langue').t('Hiérarchie de collections invalide ou trop profonde : lecture interrompue.', 'Invalid or too deep collection hierarchy: reading stopped.'), 0)
     end
     if id then visites[id] = true end
     local nom

@@ -37,6 +37,9 @@ function M.chemin()
   return nil
 end
 
-M.MESSAGE = 'Python 3.12 ou plus récent est nécessaire (python.org, installation par défaut).'
+function M.message()
+  return require('Langue').t('Python 3.12 ou plus récent est nécessaire (python.org, installation par défaut).',
+    'Python 3.12 or later is required (python.org, default install).')
+end
 
 return M

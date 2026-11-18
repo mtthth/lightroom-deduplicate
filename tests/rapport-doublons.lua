@@ -36,7 +36,7 @@ local premier = carte2:match('<b title="([^"]+)"')
 assert(premier == verifier.garde.chemin:gsub('&', '&amp;'))
 -- Les versions conservées à part : tout est conservé, mais « Fusionner de force » est proposé, avec le choix
 -- de la copie à garder.
-assert(versions.aVerifier == Doublons.RAISON_VERSIONS and versions.garde.id == 6)
+assert(versions.aVerifier == Doublons.raisonVersions() and versions.garde.id == 6)
 local apart = page:match('<article class="carte apart" id="g3" data%-g="3".-</article>')
 assert(apart and apart:find('class="force"', 1, true) and not apart:find('class="non"', 1, true))
 assert(apart:find('name="garde3" value="1" checked', 1, true) and apart:find('name="garde3" value="2">', 1, true))
