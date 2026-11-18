@@ -120,7 +120,8 @@ du rapport ; la vérification finale reste nécessaire. Le journal distingue les
 les nouveaux calculs, les écritures du cache et la phase de revalidation avant fusion.
 Le fichier de cache peut être supprimé lorsque les recherches sont arrêtées : il sera reconstruit.
 
-La copie gardée est la plus grande image, puis celle qui est retouchée dans Lightroom, puis la mieux rangée. Elle prend
+La copie gardée est la plus grande image, puis celle qui est retouchée dans Lightroom, puis celle qui a une date de
+prise de vue (une vidéo réencodée en perd souvent), puis la mieux rangée. Elle prend
 la place des autres dans leurs collections et récupère mots-clés, note, drapeau, position GPS, et les champs de texte
 (titre, légende, auteur, lieu, ville, pays…) qu'elle n'a pas. Les autres copies vont dans la collection
 « Doublons à retirer » (jamais supprimées par le module). Elles restent visibles dans les dossiers tant qu'elles

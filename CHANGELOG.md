@@ -3,6 +3,11 @@
 Les numéros suivent le [versionnage sémantique](https://semver.org/lang/fr/) : majeure.mineure.correctif.
 Les versions privées antérieures étaient numérotées par date (jusqu'à 26.11.9).
 
+## 1.1.1
+
+- À qualité égale, la copie gardée est celle qui a une date de prise de vue, avant le critère du dossier le mieux
+  rangé : une vidéo réencodée ou une copie de messagerie, souvent sans date, n'est plus proposée à sa place.
+
 ## 1.1.0
 
 - Langue de l'interface au choix : français (par défaut) ou anglais, dans Fichier → Gestionnaire de modules externes →

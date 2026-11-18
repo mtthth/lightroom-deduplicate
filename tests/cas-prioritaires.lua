@@ -150,6 +150,17 @@ D.reglerDossiers({motsDossiersDesordre='',motsDossiersTelecharges=''})
 assert(D.rangDossier('D:/Photos/albums-manquantes/IMG_1.jpg')==1, 'listes vides : aucun mot pris en compte')
 D.reglerDossiers(nil)
 assert(D.rangDossier('D:/Photos/albums-manquantes/IMG_1.jpg')==5, 'retour aux valeurs par défaut')
+-- À qualité égale, la copie qui a une date de prise de vue est gardée, même dans un dossier moins bien rangé.
+local sansDate={id=30,chemin='D:/Archives/Vidéos/bef9a313.mp4',empreinte='v',pixels=0,octets=8000000,video=true,retouchee=true}
+local datee={id=31,chemin='D:/Archives/Vidéos/2021/VIDR-2021-08-27bef9a313.mp4',empreinte='v',pixels=0,octets=8000000,video=true,
+  retouchee=true,date=651700800}
+d=D.decider({sansDate,datee})
+assert(d.garde.id==31 and d.pourquoi=='a une date de prise de vue', d.pourquoi)
+d=D.decider({datee,sansDate})
+assert(d.garde.id==31, 'ordre des copies indifférent')
+local grandeSansDate={id=32,chemin='D:/Archives/x.jpg',empreinte='g',pixels=2000,octets=10}
+local petiteDatee={id=33,chemin='D:/Archives/2021/x.jpg',empreinte='p',pixels=1000,octets=10,date=651700800}
+assert(D.decider({petiteDatee,grandeSansDate}).garde.id==32, 'la qualité passe avant la date')
 print('OK : mots-clés homonymes distincts, rafales intercalées séparées, variantes seulement proposées, copies déjà écartées, rapprochements par dimensions, copies tournées, versions au nom de retouche proposées.')
 
 

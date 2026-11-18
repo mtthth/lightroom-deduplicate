@@ -15,12 +15,13 @@
 --      autres copies est proposée et le groupe reste « à vérifier » ;
 --   2. celle qui a des retouches (deux séries de retouches ne se fusionnent pas) ;
 --   3. celle qui a des copies virtuelles (elles disparaîtraient avec elle) ;
---   4. le dossier le mieux rangé (voir rangDossier) ;
---   5. le dossier dont la date est la plus proche de la prise de vue ;
---   6. le dossier le plus profond (« 2024-10/2024-10-13 » plutôt que « 2024-10-13 ») ;
---   7. le nom sans suffixe de copie (« DSCF5219 » plutôt que « DSCF5219-2 ») ;
---   8. celle qui a déjà des notes, mots-clés… ;
---   9. la première importée (identifiant le plus petit).
+--   4. celle qui a une date de prise de vue (une vidéo réencodée ou une copie de messagerie la perd souvent) ;
+--   5. le dossier le mieux rangé (voir rangDossier) ;
+--   6. le dossier dont la date est la plus proche de la prise de vue ;
+--   7. le dossier le plus profond (« 2024-10/2024-10-13 » plutôt que « 2024-10-13 ») ;
+--   8. le nom sans suffixe de copie (« DSCF5219 » plutôt que « DSCF5219-2 ») ;
+--   9. celle qui a déjà des notes, mots-clés… ;
+--  10. la première importée (identifiant le plus petit).
 -- Un groupe est laissé tel quel (« à vérifier ») quand plusieurs copies sont retouchées, quand
 -- plusieurs ont des copies virtuelles, quand une copie à retirer est publiée, quand une copie
 -- à retirer est retouchée ou a des copies virtuelles (c'est la copie réduite qui porte le travail),
@@ -170,6 +171,8 @@ local function meilleure(a, b)
   if a.dejaEcartee ~= b.dejaEcartee then return b.dejaEcartee end
   if a.retouchee ~= b.retouchee then return a.retouchee end
   if a.avecVirtuelles ~= b.avecVirtuelles then return a.avecVirtuelles end
+  -- À qualité égale, une copie sans date de prise de vue (vidéo réencodée, copie de messagerie…) passe après.
+  if a.datee ~= b.datee then return a.datee end
   if a.rang ~= b.rang then return a.rang < b.rang end
   if a.ecart ~= b.ecart then return a.ecart < b.ecart end
   if a.profondeur ~= b.profondeur then return a.profondeur > b.profondeur end
@@ -185,6 +188,7 @@ local function raisonDuChoix(a, b)
   if a.dejaEcartee ~= b.dejaEcartee then return T('les autres copies avaient déjà été écartées', 'the other copies had already been set aside') end
   if a.retouchee ~= b.retouchee then return T('retouchée dans Lightroom', 'edited in Lightroom') end
   if a.avecVirtuelles ~= b.avecVirtuelles then return T('a des copies virtuelles', 'has virtual copies') end
+  if a.datee ~= b.datee then return T('a une date de prise de vue', 'has a capture date') end
   if a.rang ~= b.rang then return T('dossier mieux rangé', 'better filed folder') end
   if a.ecart ~= b.ecart then return T('dossier dont la date correspond le mieux à la prise de vue', 'folder whose date best matches the capture date') end
   if a.profondeur ~= b.profondeur then return T('dossier plus détaillé', 'more detailed folder') end
@@ -231,6 +235,7 @@ function M.decider(copies, refus)
       octetsImage = octetsParImage[c.empreinte or c],
       retouchee = c.retouchee and true or false,
       avecVirtuelles = (c.virtuelles or 0) > 0,
+      datee = c.date ~= nil,
       rang = M.rangDossier(c.chemin),
       ecart = M.ecartDossier(c.chemin, c.date),
       profondeur = #separer(c.chemin),
