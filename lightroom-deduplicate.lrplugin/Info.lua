@@ -18,5 +18,5 @@ return {
     { title = 'Restaurer les collections avant fusion ou rafales…', file = 'RestaurerCollections.lua' },
     { title = 'Réduire les rafales…', file = 'ReduireRafales.lua' },
   },
-  VERSION = { major = 1, minor = 0, revision = 0 },
+  VERSION = { major = 1, minor = 0, revision = 1 },
 }

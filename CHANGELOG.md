@@ -3,6 +3,11 @@
 Les numéros suivent le [versionnage sémantique](https://semver.org/lang/fr/) : majeure.mineure.correctif.
 Les versions privées antérieures étaient numérotées par date (jusqu'à 26.11.9).
 
+## 1.0.1
+
+- Python est aussi cherché dans le PATH, en dernier recours : une installation faite par un autre moyen que
+  l'installeur de python.org (winget, environnement virtuel…) est trouvée.
+
 ## 1.0.0 — première version publique
 
 - Identifiant du module : `io.github.mtthth.deduplicate` (auparavant `fr.matthieu.deduplicate`). Le texte à ignorer
