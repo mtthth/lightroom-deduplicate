@@ -19,7 +19,13 @@ function M.verifier(decisions, progression, empreintes, vignettes, cache, diagno
       local parImage = {}
       for _, c in ipairs(liste) do if c.preuveComparaison then parImage[c.empreinte] = true end end
       for _, c in ipairs(liste) do
-        assert(parImage[c.empreinte], T('Preuve de comparaison absente : relancez la recherche avant de fusionner.', 'Comparison proof missing: run the search again before merging.'))
+        if not parImage[c.empreinte] then
+          error(string.format(T('Preuve de comparaison absente (groupe %s) :\n%s\nAucune miniature ne relie cette '
+            .. 'image aux autres copies du groupe. Fusion interrompue avant toute modification : relancez la '
+            .. 'recherche avant de fusionner.', 'Comparison proof missing (group %s):\n%s\nNo thumbnail links this '
+            .. 'image to the other copies in the group. Merge stopped before any change: run the search again '
+            .. 'before merging.'), tostring(d.numero or '?'), tostring(c.chemin)), 0)
+        end
       end
     end
   end

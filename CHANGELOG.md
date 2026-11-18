@@ -3,6 +3,12 @@
 Les numéros suivent le [versionnage sémantique](https://semver.org/lang/fr/) : majeure.mineure.correctif.
 Les versions privées antérieures étaient numérotées par date (jusqu'à 26.11.9).
 
+## 1.1.2
+
+- Une image dont ImageMagick ne peut pas faire de miniature n'est plus placée parmi les versions conservées à part :
+  forcé, un tel groupe était refusé au moment de fusionner (« Preuve de comparaison absente »). L'image est conservée.
+- Le message de preuve absente indique le groupe et le fichier en cause.
+
 ## 1.1.1
 
 - À qualité égale, la copie gardée est celle qui a une date de prise de vue, avant le critère du dossier le mieux

@@ -433,13 +433,20 @@ local function chercherGroupes(copies, progression, diagnostic, cache, options)
     end
     -- Versions qui restent à part : images différentes. Le groupe de candidats est listé une seule fois,
     -- sans les images au cadrage trop éloigné de la plus grande (autre image au même nom et à la même
-    -- date, fort recadrage) : elles ne sont pas proposées à la fusion forcée.
+    -- date, fort recadrage) : elles ne sont pas proposées à la fusion forcée. Une image sans miniature
+    -- (format non lu par ImageMagick) n'y figure pas non plus : sans miniature, la vérification avant
+    -- fusion n'a aucune preuve de comparaison et refuserait le groupe forcé. Elle est conservée.
     if #ensembles > 1 and not a.parDimensions and not signales[a.origine] then
       signales[a.origine] = true
-      local principale = ensembles[1][1]
+      local principale
+      for _, ensemble in ipairs(ensembles) do
+        if ensemble[1].signature then principale = ensemble[1]; break end
+      end
       local gardees, entier = 0, {}
       for _, ensemble in ipairs(ensembles) do
-        if ensemble[1] == principale or Similitude.memeCadrage(principale, ensemble[1]) then
+        if not ensemble[1].signature then
+          -- comptée dans sansMiniature
+        elseif ensemble[1] == principale or Similitude.memeCadrage(principale, ensemble[1]) then
           gardees = gardees + 1
           for _, classe in ipairs(ensemble) do
             for _, c in ipairs(classe.copies) do

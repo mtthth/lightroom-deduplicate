@@ -20,5 +20,5 @@ return {
     { title = LOC '$$$/Deduplicate/Menu/Restaurer=Restaurer les collections avant fusion ou rafales…', file = 'RestaurerCollections.lua' },
     { title = LOC '$$$/Deduplicate/Menu/Rafales=Réduire les rafales…', file = 'ReduireRafales.lua' },
   },
-  VERSION = { major = 1, minor = 1, revision = 1 },
+  VERSION = { major = 1, minor = 1, revision = 2 },
 }

@@ -165,3 +165,25 @@ d = D.decider(avec.groupes[1])
 assert(d.garde.id == 1 and d.aVerifier:find('noms différents', 1, true))
 print('OK : rapprochement optionnel par dimensions, rotation comprise, toujours à vérifier.')
 
+-- Versions distinctes avec une image sans miniature (format non lu) : elle reste hors du groupe proposé
+-- à la fusion forcée, sinon la vérification avant fusion la refuserait faute de preuve de comparaison.
+local versions = {
+  { id = 1, chemin = 'C:/a/V.jpg', date = 1, taille = 300 },
+  { id = 2, chemin = 'C:/b/V.jpg', date = 1, taille = 200 },
+  { id = 3, chemin = 'C:/c/V.jpg', date = 1, taille = 100 },
+}
+local clair = string.rep(string.char(0), 384) .. string.rep(string.char(200), 384)
+local fonce = string.rep(string.char(60), 384) .. string.rep(string.char(255), 384)
+local imagesVersions = { magick = function() return 'magick' end, signature = function(p)
+  if p == 'C:/c/V.jpg' then return nil end
+  return { signature = p == 'C:/a/V.jpg' and clair or fonce, largeur = 640, hauteur = 480 }
+end }
+local rechercheVersions = preparer({ empreinte = function(p) return 'jpeg:' .. p end }, imagesVersions, taches,
+  { currentTime = os.clock }, D, S, require 'Parallele')
+local trouves = rechercheVersions(versions, progression, diag, sansCache)
+assert(#trouves.groupes == 0 and #trouves.differents == 1, 'deux versions distinctes')
+for _, c in ipairs(trouves.differents[1]) do assert(c.id ~= 3, 'image sans miniature écartée des versions') end
+local dv = D.deciderVersions(trouves.differents[1])
+local forceeV = Choix.appliquer({ dv }, { exclus = {}, forces = { [1] = 1 } }).forcees[1]
+assert(R.verifier({ forceeV }, progression, { empreinte = function(p) return 'jpeg:' .. p end }, imagesVersions, sansCache))
+print('OK : image sans miniature hors des versions forcées, fusion forcée vérifiable.')
