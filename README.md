@@ -6,7 +6,7 @@ Module externe pour **Lightroom Classic** (Windows) qui retrouve les photos et v
 les fusionne sans rien perdre de leur classement, et allège les rafales en ne gardant que les meilleurs cadres.
 
 Le module ne supprime jamais de fichier. Les copies écartées sont rassemblées dans une collection
-« Doublons à retirer » : c'est toi qui décides de les retirer du catalogue.
+« Doublons à retirer » : c'est vous qui décidez de les retirer du catalogue.
 
 ## Ce qu'il fait
 
@@ -17,7 +17,7 @@ Le module ne supprime jamais de fichier. Les copies écartées sont rassemblées
 - **Réunit tout sur la copie gardée** : collections, mots-clés, note, drapeau, position GPS, titre, légende… Les copies
   virtuelles des copies écartées sont recréées sur elle lors d'une fusion forcée.
 - **Montre un rapport HTML avant toute modification** : miniatures, copie gardée et pourquoi, ce qui change dans chaque
-  collection. Tu peux écarter un groupe, ou en forcer un autre en choisissant la copie à garder.
+  collection. Vous pouvez écarter un groupe, ou en forcer un autre en choisissant la copie à garder.
 - **Réduit les rafales** : garde le cadre le plus net de chaque bloc, et protège toujours les photos notées, marquées,
   retouchées, publiées ou rangées dans un album.
 - **Vidéos** : copies strictement identiques fusionnées automatiquement ; versions converties ou recoupées
@@ -25,13 +25,13 @@ Le module ne supprime jamais de fichier. Les copies écartées sont rassemblées
 
 ## Sécurité
 
-- Rien n'est modifié avant ta confirmation, et le rapport décrit exactement le plan qui sera appliqué.
+- Rien n'est modifié avant votre confirmation, et le rapport décrit exactement le plan qui sera appliqué.
 - Les fichiers sont relus juste avant la fusion : si l'un a changé depuis l'analyse, rien n'est fait.
 - Une sauvegarde des collections est écrite et vérifiée avant chaque fusion ; une commande permet de les restaurer.
 - Chaque fusion ou réduction est **une seule action Lightroom** : Ctrl+Z l'annule entièrement.
 - Le catalogue est lu en lecture seule par Python ; toutes les modifications passent par le SDK Lightroom.
 
-Comme pour tout outil qui touche un catalogue, fais une sauvegarde du catalogue avant la première utilisation.
+Comme pour tout outil qui touche un catalogue, faites une sauvegarde du catalogue avant la première utilisation.
 
 ## Prérequis
 
@@ -42,21 +42,21 @@ Comme pour tout outil qui touche un catalogue, fais une sauvegarde du catalogue 
 
 ## Installation
 
-1. Télécharge la dernière version dans [Releases](../../releases) et décompresse-la.
-2. Dans Lightroom Classic : **Fichier → Gestionnaire de modules externes → Ajouter**, puis choisis le dossier
+1. Téléchargez la dernière version dans [Releases](../../releases) et décompressez-la.
+2. Dans Lightroom Classic : **Fichier → Gestionnaire de modules externes → Ajouter**, puis choisissez le dossier
    `lightroom-deduplicate.lrplugin`.
 3. Les commandes apparaissent dans **Bibliothèque → Options du module externe**.
 
-Le module écrit ses rapports, sauvegardes et journaux à côté du dossier `lightroom-deduplicate.lrplugin` : place-le
-dans un dossier où tu as le droit d'écrire.
+Le module écrit ses rapports, sauvegardes et journaux à côté du dossier `lightroom-deduplicate.lrplugin` : placez-le
+dans un dossier où vous avez le droit d'écrire.
 
 ## Premiers pas
 
-1. Ouvre un dossier ou une collection (ou sélectionne quelques photos), puis lance
+1. Ouvrez un dossier ou une collection (ou sélectionnez quelques photos), puis lancez
    **Rechercher les doublons pour fusion…**.
-2. Clique sur **Voir le rapport** et parcours les groupes. Coche « Ne pas fusionner » ou « Fusionner de force » si
-   besoin, puis **Copier le code** et colle-le dans Lightroom.
-3. Confirme. Les copies écartées sont dans « Doublons à retirer » ; pour les retirer vraiment, sélectionne-les dans
+2. Cliquez sur **Voir le rapport** et parcourez les groupes. Cochez « Ne pas fusionner » ou « Fusionner de force » si
+   besoin, puis **Copier le code** et collez-le dans Lightroom.
+3. Confirmez. Les copies écartées sont dans « Doublons à retirer » ; pour les retirer vraiment, sélectionnez-les dans
    **Catalogue → Toutes les photos**, puis **Suppr → Retirer**.
 
 Le [mode d'emploi complet](lightroom-deduplicate.lrplugin/LISEZ-MOI.md) détaille chaque commande, les règles de

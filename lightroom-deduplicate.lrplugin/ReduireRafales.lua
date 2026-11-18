@@ -61,7 +61,7 @@ local HISTORIQUE = require('HistoriqueCommun').chemins()
 local function lireSource(catalogue)
   local sources = catalogue:getActiveSources()
   if #sources ~= 1 or type(sources[1]) ~= 'table' then
-    return nil, 'Affiche un seul dossier ou une seule collection (panneau Dossiers ou Collections), puis relance la commande.'
+    return nil, 'Affichez un seul dossier ou une seule collection (panneau Dossiers ou Collections), puis relancez la commande.'
   end
   local source = sources[1]
   local genre = source:type()
@@ -70,7 +70,7 @@ local function lireSource(catalogue)
   elseif genre == 'LrCollection' or genre == 'LrPublishedCollection' then
     return { nom = source:getName(), dossier = false, photos = function() return source:getPhotos() end }
   end
-  return nil, 'Affiche un dossier ou une collection (pas un ensemble de collections), puis relance la commande.'
+  return nil, 'Affichez un dossier ou une collection (pas un ensemble de collections), puis relancez la commande.'
 end
 
 -- Boîte de choix : un cadre gardé pour combien, sous-dossiers. Renvoie { ratio, sousDossiers } ou nil.
@@ -83,7 +83,7 @@ local function demanderOptions(contexte, source)
   local colonne = { bind_to_object = proprietes, spacing = f:control_spacing() }
   colonne[#colonne + 1] = f:static_text {
     title = 'Réduire les rafales de « ' .. source.nom .. ' ». Rien n’est supprimé : les cadres en trop sont mis '
-      .. 'dans la collection « ' .. Rafales.COLLECTION .. ' », que tu vérifies avant de les retirer.',
+      .. 'dans la collection « ' .. Rafales.COLLECTION .. ' », que vous vérifiez avant de les retirer.',
     width = 480, height_in_lines = 3,
   }
   colonne[#colonne + 1] = f:row {
@@ -354,14 +354,14 @@ LrTasks.startAsyncTask(function()
         .. '• %d cadres protégés, toujours gardés (collection, note, drapeau, libellé, retouche…)\n'
         .. '• %d cadres gardés : le plus net de chaque bloc de %d\n'
         .. '• %d cadres à retirer (%d fichiers, %s)\n\n'
-        .. 'Si tu cliques sur « Mettre de côté », ces cadres seront ajoutés à la collection « %s ». '
+        .. 'Si vous cliquez sur « Mettre de côté », ces cadres seront ajoutés à la collection « %s ». '
         .. 'Rien ne sera supprimé. Les photos de ces rafales (gardées comme retirées) recevront le mot-clé « %s » '
         .. '(non exporté) : une relance les ignore. Rapport : %s',
         source.nom, bilan.rafales, bilan.cadres, bilan.proteges, bilan.gardes, options.ratio,
         bilan.retires, bilan.fichiersRetires, taille(bilan.octetsRetires), Rafales.COLLECTION, Rafales.MOT_CLE, RAPPORT_HTML)
       if motIgnore:match('%S') then
         message = message .. string.format('\n\nLes collections dont le chemin contient « %s » ne protègent pas les photos. '
-          .. 'Si tu retires ensuite ces photos du catalogue, elles disparaîtront aussi de ces collections.', motIgnore)
+          .. 'Si vous retirez ensuite ces photos du catalogue, elles disparaîtront aussi de ces collections.', motIgnore)
       end
       if nbIgnorees > 0 then
         message = message .. string.format('\n\n%d photos de cette source sont ignorées : déjà traitées (mot-clé « %s » ou historique) '
@@ -410,11 +410,11 @@ LrTasks.startAsyncTask(function()
       issue = 'termine'
       local messageFinal = string.format(
         '%d cadres (%d fichiers) sont dans la collection « %s ».\n\n'
-        .. 'Pour terminer le retrait, sélectionne uniquement ces copies dans « Catalogue → Toutes les photos », '
+        .. 'Pour terminer le retrait, sélectionnez uniquement ces copies dans « Catalogue → Toutes les photos », '
         .. 'puis Suppr → « Retirer » (espace récupérable sur disque : %s).\n\n'
         .. 'Les photos de ces rafales ont reçu le mot-clé « %s » : les prochaines réductions les ignorent, même une '
-        .. 'fois la collection vidée. Les fichiers retirés sont mémorisés dans %s. Pour les retraiter, supprime '
-        .. 'leurs lignes de cet historique et ôte le mot-clé de toutes les photos de la rafale.',
+        .. 'fois la collection vidée. Les fichiers retirés sont mémorisés dans %s. Pour les retraiter, supprimez '
+        .. 'leurs lignes de cet historique et ôtez le mot-clé de toutes les photos de la rafale.',
         bilan.retires, bilan.fichiersRetires, Rafales.COLLECTION, taille(bilan.octetsRetires), Rafales.MOT_CLE, HISTORIQUE)
         .. '\n\nCtrl+Z annule la réduction complète : collection, mot-clé et historique des exclusions.'
         .. '\n\nSauvegarde des collections d’origine :\n' .. sauvegarde

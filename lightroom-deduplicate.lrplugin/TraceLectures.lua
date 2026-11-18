@@ -18,7 +18,7 @@ function M.ouvrir(chemin, progression, commande)
     f:close()
     if not ok then error('Impossible d’écrire le diagnostic : ' .. tostring(probleme), 0) end
   end
-  ecrire('SESSION\tDiagnostic 1.0.1\tcommande=' .. texte(commande or 'lecture des collections'))
+  ecrire('SESSION\tDiagnostic 1.0.2\tcommande=' .. texte(commande or 'lecture des collections'))
   local trace = { chemins = {}, progression = progression }
   local function champs(valeurs)
     local cles, r = {}, {}

@@ -85,7 +85,7 @@ end
 
 -- Identifiants (localIdentifier) des photos des collections de premier niveau portant l'un des
 -- noms de `noms` (par exemple « Doublons à retirer » et « Rafales à retirer », où les commandes
--- mettent les photos en trop en attendant que tu les retires du catalogue), et leur nombre.
+-- mettent les photos en trop en attendant que vous les retiriez du catalogue), et leur nombre.
 -- Une erreur de lecture donne une liste vide : la commande continue sans ignorer ces photos.
 -- `strict` laisse au contraire remonter l'erreur (vérification après fusion : une lecture ratée ne doit
 -- pas passer pour une absence de photos).

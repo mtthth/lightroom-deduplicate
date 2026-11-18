@@ -28,7 +28,7 @@ LrTasks.startAsyncTask(function()
     local ok, erreur = LrTasks.pcall(function()
       local catalogue = LrApplication.activeCatalog()
       local photo = catalogue:getTargetPhoto()
-      if not photo then error('Sélectionne une photo avant le diagnostic.', 0) end
+      if not photo then error('Sélectionnez une photo avant le diagnostic.', 0) end
       local photos = {}
       for i, p in ipairs(catalogue:getTargetPhotos()) do
         if i > 100 then break end

@@ -96,7 +96,7 @@ function M.lire(catalogue, decisions, lireCollections, progression)
     s.textes = {}
     for _, cle in ipairs(Doublons.CHAMPS_TEXTE) do s.textes[cle] = f[cle] or '' end
     s.collections = assert(appartenances[s.photo], 'Collections de la copie virtuelle non lues').collections
-    -- Déjà mise à retirer : tu l'as écartée auparavant, elle n'est pas recréée.
+    -- Déjà mise à retirer : vous l'avez écartée auparavant, elle n'est pas recréée.
     local aRetirer = false
     for _, col in ipairs(s.collections) do
       if col.exclue then aRetirer = true end
@@ -180,7 +180,7 @@ function M.completerErreur(erreur, entrees)
   local n = nbCreees(entrees)
   if n == 0 then return tostring(erreur) end
   return tostring(erreur) .. string.format('\n\n%d copie%s virtuelle%s déjà créée%s sur les copies gardées, sans les '
-    .. 'réglages des anciennes : Ctrl+Z (répété) les annule, ou retire-les du catalogue.', n,
+    .. 'réglages des anciennes : Ctrl+Z (répété) les annule, ou retirez-les du catalogue.', n,
     n > 1 and 's' or '', n > 1 and 's' or '', n > 1 and 's' or '')
 end
 
@@ -232,7 +232,7 @@ function M.creer(catalogue, entrees, corbeilles, progression)
       if not selectionner(catalogue, e.decision.garde.photo) then
         error('La copie gardée ' .. nomFichier(e.decision.garde.chemin) .. ' n’a pas pu être sélectionnée : elle n’est '
           .. 'pas affichée dans la grille, ou un filtre la masque. Il faut la sélectionner pour lui créer les copies '
-          .. 'virtuelles de ' .. nomFichier(e.retiree.chemin) .. '. Affiche son dossier, retire le filtre, puis relance. '
+          .. 'virtuelles de ' .. nomFichier(e.retiree.chemin) .. '. Affichez son dossier, retirez le filtre, puis relancez. '
           .. 'Rien n’a été modifié.', 0)
       end
     end

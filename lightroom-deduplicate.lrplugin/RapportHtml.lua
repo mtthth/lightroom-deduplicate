@@ -206,7 +206,7 @@ local function carteDecision(numero, d, m)
         and 'La version dont le nom annonce une retouche ne montre pas la même vue que les autres copies.'
         or 'Les images diffèrent (version retouchée, recadrée ou recompressée).')
       .. (d.aVerifier ~= Doublons.RAISON_VERSIONS and (' ' .. h(d.aVerifier) .. '.') or '')
-      .. ' <b>Tout est conservé</b>, sauf si tu coches « Fusionner de force » : choisis alors la copie à garder '
+      .. ' <b>Tout est conservé</b>, sauf si vous cochez « Fusionner de force » : choisissez alors la copie à garder '
       .. '(proposée : ' .. h(nomFichier(d.garde.chemin)) .. ', ' .. h(d.pourquoi or '') .. '). Les retouches Lightroom '
       .. 'et publications des copies écartées ne sont pas transférées.</p>' .. reunion
     return string.format(
@@ -217,7 +217,7 @@ local function carteDecision(numero, d, m)
   elseif verifier then
     choix = '<label class="choix"><input type="checkbox" class="force"> Fusionner de force</label>'
     corps = '<p class="pourquoi">À vérifier : ' .. h(d.aVerifier) .. '. <b>Rien ne sera fait pour ce groupe</b>, sauf si '
-      .. 'tu coches « Fusionner de force » : choisis alors la copie à garder. Les retouches Lightroom et publications '
+      .. 'vous cochez « Fusionner de force » : choisissez alors la copie à garder. Les retouches Lightroom et publications '
       .. 'des copies écartées ne sont pas transférées ; leurs copies virtuelles (hors vidéos) sont recréées sur la copie '
       .. 'gardée.</p>' .. reunion
   else
@@ -348,7 +348,7 @@ function majCode() {
   const pluriel = (n, mot) => n + ' ' + mot + (n > 1 ? 's' : '');
   resumeChoix.textContent = champCode.value
     ? pluriel(non.length, 'groupe') + ' à ne pas fusionner, ' + pluriel(forces.length, 'groupe') + ' à fusionner de force. '
-      + 'Copie le code et colle-le dans Lightroom avant de cliquer sur « Fusionner ».'
+      + 'Copiez le code et collez-le dans Lightroom avant de cliquer sur « Fusionner ».'
     : 'Aucun choix : les groupes « à fusionner » le seront tous, les groupes « à vérifier » resteront tels quels.';
   try { localStorage.setItem(CLE, JSON.stringify({ non, force })); } catch (e) { /* choix gardés pour cette page seulement */ }
 }
@@ -410,8 +410,8 @@ document.getElementById('fusionner-affiches').addEventListener('click', () => {
     if (ecartes.length) {
       alert((ecartes.length > 1 ? 'Ces groupes n’ont pas été forcés :' : 'Ce groupe n’a pas été forcé :')
         + '\n• ' + ecartes.join('\n• ')
-        + '\n\nPour en forcer un, sors d’abord l’autre groupe de la fusion : décoche son « Fusionner de force », ou '
-        + 'coche son « Ne pas fusionner ».');
+        + '\n\nPour en forcer un, sortez d’abord l’autre groupe de la fusion : décochez son « Fusionner de force », ou '
+        + 'cochez son « Ne pas fusionner ».');
     }
   }
 });
@@ -481,9 +481,9 @@ function M.page(m)
     .. '<style>' .. CSS .. '</style></head><body><main data-analyse="' .. h(m.identifiant) .. '">')
   ajouter('<h1>Doublons — rapport avant fusion</h1>')
   ajouter('<p><b>Rien n’a été modifié dans Lightroom.</b> Recherche faite sur ' .. h(m.portee) .. ' · ' .. h(m.date)
-    .. ' · analyse ' .. h(m.identifiant) .. '. Pour appliquer ce qui est décrit ici, reviens dans Lightroom et clique sur '
-    .. '« Fusionner ». Pour écarter un groupe ou forcer un groupe « à vérifier », coche sa case, copie le code de '
-    .. 'tes choix (barre ci-dessous) et colle-le dans Lightroom avant de cliquer sur « Fusionner ».</p>')
+    .. ' · analyse ' .. h(m.identifiant) .. '. Pour appliquer ce qui est décrit ici, revenez dans Lightroom et cliquez sur '
+    .. '« Fusionner ». Pour écarter un groupe ou forcer un groupe « à vérifier », cochez sa case, copiez le code de '
+    .. 'vos choix (barre ci-dessous) et collez-le dans Lightroom avant de cliquer sur « Fusionner ».</p>')
 
   ajouter('<div class="resume">')
   -- texte : « singulier|pluriel » (le nombre s'accorde ; une valeur déjà formatée, comme une taille, prend le pluriel).
@@ -496,7 +496,7 @@ function M.page(m)
   carteChiffre(#fusions, 'groupe à fusionner|groupes à fusionner', 'garder')
   carteChiffre(retirees, 'copie retirée (mise de côté)|copies retirées (mises de côté)', 'retirer')
   carteChiffre(reduites, 'dont copie réduite ou recompressée|dont copies réduites ou recompressées')
-  carteChiffre(taille(octets), 'libérés si tu les supprimes du disque|libérés si tu les supprimes du disque')
+  carteChiffre(taille(octets), 'libérés si vous les supprimez du disque|libérés si vous les supprimez du disque')
   carteChiffre(nbCollections, 'collection modifiée|collections modifiées')
   carteChiffre(#verifier, 'groupe à vérifier (rien de fait)|groupes à vérifier (rien de fait)', 'verifier')
   carteChiffre(#versions, 'groupe de versions conservées|groupes de versions conservées', 'apart')
@@ -510,7 +510,7 @@ function M.page(m)
     .. 'retouchée dans Lightroom, la mieux rangée…). Elle prend la place des copies retirées dans leurs collections '
     .. '(albums Google Photos compris) et récupère leurs mots-clés, leur note, leur drapeau, leur position GPS et leurs '
     .. 'textes quand elle n’en a pas. Les copies retirées sont mises dans la collection « ' .. h(m.collection)
-    .. ' » ; tu les retires ensuite du catalogue toi-même. Si une copie à retirer est retouchée ou a des copies '
+    .. ' » ; vous les retirez ensuite vous-même du catalogue. Si une copie à retirer est retouchée ou a des copies '
     .. 'virtuelles, le groupe reste « à vérifier ». Fusionné de force, ses retouches ne sont pas recopiées, mais ses copies '
     .. 'virtuelles sont recréées sur la copie gardée (nom, réglages, métadonnées et collections).</p>')
 
@@ -524,7 +524,7 @@ function M.page(m)
     .. '<div class="mes-choix"><button type="button" id="fusionner-affiches">Fusionner tous les groupes affichés</button>'
     .. '<button type="button" id="exclure-affiches">Ne pas fusionner les groupes affichés</button>'
     .. '<button type="button" id="retablir-affiches">Annuler mes choix sur les groupes affichés</button>'
-    .. '<input id="code" readonly placeholder="Code de tes choix" aria-label="Code de tes choix">'
+    .. '<input id="code" readonly placeholder="Code de vos choix" aria-label="Code de vos choix">'
     .. '<button type="button" id="copier" class="principal" disabled>Copier le code</button>'
     .. '<span id="resume-choix" class="notes"></span></div></div>')
 

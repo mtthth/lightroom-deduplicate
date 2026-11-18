@@ -148,7 +148,7 @@ local function choisirGardee(contexte, copies, parResolution)
   if #choix == 0 then
     LrDialogs.message('Fusion manuelle impossible', 'Aucune photo de la sélection ne peut être gardée : '
       .. 'les originaux de ces copies virtuelles sont dans une collection « à retirer ». '
-      .. 'Rétablis d’abord leurs originaux avant de relancer la fusion.', 'warning')
+      .. 'Rétablissez d’abord leurs originaux avant de relancer la fusion.', 'warning')
     return nil
   end
   proprietes.gardee = choix[1].value
@@ -159,7 +159,7 @@ local function choisirGardee(contexte, copies, parResolution)
       spacing = f:control_spacing(),
       f:static_text {
         title = string.format('%d photos ou vidéos sélectionnées seront traitées comme un seul groupe, sans comparaison '
-          .. 'de leur contenu. Choisis la copie qui récupère les albums et métadonnées. Les autres quitteront leurs '
+          .. 'de leur contenu. Choisissez la copie qui récupère les albums et métadonnées. Les autres quitteront leurs '
           .. 'collections ordinaires et seront placées dans « %s ». Elles restent dans le catalogue jusqu’à leur retrait manuel.',
           #copies, COLLECTION_DOUBLONS),
         width = 560, height_in_lines = 5,
@@ -180,7 +180,7 @@ local function choisirGardee(contexte, copies, parResolution)
       f:static_text {
         title = avecOriginalEcarte
           and 'Les copies virtuelles dont l’original est dans une collection « à retirer » ne peuvent pas être gardées. '
-            .. 'Rétablis d’abord leur original si tu veux les conserver.' or '',
+            .. 'Rétablissez d’abord leur original si vous voulez les conserver.' or '',
         visible = avecOriginalEcarte, width = 560, height_in_lines = 3,
       },
     },
@@ -256,11 +256,11 @@ local function appliquer(catalogue, decision, diagnostic)
   if not ok then error(CopiesVirtuelles.completerErreur(historiqueOk, virtuelles), 0) end
   for _, col in ipairs(decision.garde.photo:getContainedCollections()) do
     if CORBEILLES[col:getName()] then
-      error('La copie gardée est encore dans « ' .. col:getName() .. ' ». Ne retire aucune photo ou vidéo du catalogue.', 0)
+      error('La copie gardée est encore dans « ' .. col:getName() .. ' ». Ne retirez aucune photo ou vidéo du catalogue.', 0)
     end
   end
   if historiqueOk and Historique.contient(Historique.lire(HISTORIQUE), decision.garde.chemin) then
-    error('La copie gardée reste exclue dans l’historique. Ne retire aucune photo ou vidéo du catalogue.', 0)
+    error('La copie gardée reste exclue dans l’historique. Ne retirez aucune photo ou vidéo du catalogue.', 0)
   end
   local ecarts = diagnostic:mesurer('copies_virtuelles_verification', { copies = #virtuelles }, function()
     return CopiesVirtuelles.verifier(virtuelles)
@@ -278,7 +278,7 @@ LrTasks.startAsyncTask(function()
       local catalogue = diagnostic:mesurer('catalogue_actif', {}, function() return LrApplication.activeCatalog() end)
       local photos = diagnostic:mesurer('selection_grille', {}, function() return selection(catalogue) end)
       if #photos < 2 then
-        LrDialogs.message('Fusion manuelle', 'Sélectionne au moins deux photos ou vidéos dans la grille ou la pellicule.', 'info')
+        LrDialogs.message('Fusion manuelle', 'Sélectionnez au moins deux photos ou vidéos dans la grille ou la pellicule.', 'info')
         return
       end
 

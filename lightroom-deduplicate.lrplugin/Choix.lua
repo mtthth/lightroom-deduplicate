@@ -15,8 +15,8 @@ local Doublons = require 'Doublons'
 
 local M = {}
 
-M.ENTETE = '# Groupes que tu as choisi de ne pas fusionner : date, puis les fichiers du groupe, séparés par des tabulations.\r\n'
-  .. '# Un groupe qui réunit deux fichiers d’une même ligne reste « à vérifier ». Supprime la ligne pour lever le refus.\r\n'
+M.ENTETE = '# Groupes que vous avez choisi de ne pas fusionner : date, puis les fichiers du groupe, séparés par des tabulations.\r\n'
+  .. '# Un groupe qui réunit deux fichiers d’une même ligne reste « à vérifier ». Supprimez la ligne pour lever le refus.\r\n'
 
 local function normaliser(chemin)
   return (chemin or ''):gsub('/', '\\'):lower()
@@ -48,11 +48,11 @@ function M.lireCode(texte, decisions, identifiant)
   for mot in propre:gmatch('%S+') do mots[#mots + 1] = mot end
   if #mots == 0 then return choix end
   if mots[1] ~= 'dedup' then
-    return nil, 'Le code doit commencer par DEDUP : copie-le avec le bouton « Copier le code » du rapport.'
+    return nil, 'Le code doit commencer par DEDUP : copiez-le avec le bouton « Copier le code » du rapport.'
   end
   if mots[2] ~= identifiant then
-    return nil, string.format('Ce code vient d’un autre rapport (analyse %s ; celle-ci est %s). Ouvre le rapport de '
-      .. 'cette analyse avec « Ouvrir le rapport » et copie de nouveau le code.', mots[2] or '?', identifiant)
+    return nil, string.format('Ce code vient d’un autre rapport (analyse %s ; celle-ci est %s). Ouvrez le rapport de '
+      .. 'cette analyse avec « Ouvrir le rapport » et copiez de nouveau le code.', mots[2] or '?', identifiant)
   end
   local mode
   for i = 3, #mots do
@@ -108,11 +108,11 @@ function M.lireCode(texte, decisions, identifiant)
         if communes > 0 then
           if choix.forces[n] or communes < total then
             if choix.forces[n] then
-              return nil, string.format('Les groupes %d et %d partagent des photos : ne force qu’un des deux (décoche '
+              return nil, string.format('Les groupes %d et %d partagent des photos : ne forcez qu’un des deux (décochez '
                 .. '« Fusionner de force » sur le groupe %d).', math.min(f, n), math.max(f, n), math.max(f, n))
             end
             return nil, string.format('Les groupes %d et %d partagent des photos, mais le groupe forcé %d ne contient '
-              .. 'qu’une partie du groupe %d : coche « Ne pas fusionner » sur le groupe %d, ou décoche « Fusionner de '
+              .. 'qu’une partie du groupe %d : cochez « Ne pas fusionner » sur le groupe %d, ou décochez « Fusionner de '
               .. 'force » sur le groupe %d.', math.min(f, n), math.max(f, n), f, n, n, f)
           end
           choix.absorbes[n] = f

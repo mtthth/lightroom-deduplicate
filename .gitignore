@@ -4,7 +4,7 @@ rapport-rafales/
 doublons.csv
 rafales.csv
 
-# Historique des photos écartées et groupes que tu as choisi de ne pas fusionner (chemins de photos personnelles).
+# Historique des photos écartées et groupes que vous avez choisi de ne pas fusionner (chemins de photos personnelles).
 photos-traitees.txt
 photos-traitees*.bak*
 photos-traitees*.tmp*

@@ -31,7 +31,7 @@ local function choisirGroupes(sauvegarde, photos)
       local fin = math.min(page * taillePage, #sauvegarde.groupes)
       local colonne = { bind_to_object = props, spacing = f:control_spacing(), fill = 1 }
       colonne[#colonne + 1] = f:static_text { title = 'Sauvegarde : ' .. (sauvegarde.date or 'date inconnue'), width = 400 }
-      colonne[#colonne + 1] = f:static_text { title = string.format('Coche les groupes à restaurer. Page %d / %d.', page, totalPages), width = 400 }
+      colonne[#colonne + 1] = f:static_text { title = string.format('Cochez les groupes à restaurer. Page %d / %d.', page, totalPages), width = 400 }
       local function cocherTous(valeur)
         for i = 1, #sauvegarde.groupes do props['groupe' .. i] = valeur end
       end
@@ -72,7 +72,7 @@ local function choisirGroupes(sauvegarde, photos)
         end
         groupesVisibles[#groupesVisibles + 1] = f:separator { fill_horizontal = 1 }
       end
-      colonne[#colonne + 1] = f:static_text { title = 'Fais défiler pour voir toutes les photos des groupes.', width = 400 }
+      colonne[#colonne + 1] = f:static_text { title = 'Faites défiler pour voir toutes les photos des groupes.', width = 400 }
       -- Sur Windows le SDK ne redimensionne pas scrolled_view avec la fenêtre : prévoir une grande vue dès l'ouverture.
       colonne[#colonne + 1] = f:scrolled_view { width = grandeVue and 1400 or 700, height = grandeVue and 800 or 500, horizontal_scroller = true,
         f:column(groupesVisibles) }
@@ -91,7 +91,7 @@ local function choisirGroupes(sauvegarde, photos)
         local numeros = {}
         for i = 1, #sauvegarde.groupes do if props['groupe' .. i] then numeros[#numeros + 1] = i end end
         if #numeros == 0 then
-          LrDialogs.message('Aucun groupe sélectionné', 'Coche au moins un groupe à restaurer.', 'info')
+          LrDialogs.message('Aucun groupe sélectionné', 'Cochez au moins un groupe à restaurer.', 'info')
         else
           resultat = Sauvegarde.selectionner(sauvegarde, numeros)
           return

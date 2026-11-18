@@ -5,7 +5,7 @@ function M.verifier(decisions, progression, empreintes, vignettes, cache, diagno
   local copies, vus, preuves = {}, {}, {}
   for _, d in ipairs(decisions) do
     assert(d.forcee or Doublons.comparaisonsValides(d),
-      'Les images ne ressemblent pas toutes à la copie gardée : relance la recherche ou confirme une fusion de force.')
+      'Les images ne ressemblent pas toutes à la copie gardée : relancez la recherche ou confirmez une fusion de force.')
     local liste = { d.garde }
     for _, c in ipairs(d.retirees) do liste[#liste + 1] = c end
     local approximative = false
@@ -18,7 +18,7 @@ function M.verifier(decisions, progression, empreintes, vignettes, cache, diagno
       local parImage = {}
       for _, c in ipairs(liste) do if c.preuveComparaison then parImage[c.empreinte] = true end end
       for _, c in ipairs(liste) do
-        assert(parImage[c.empreinte], 'Preuve de comparaison absente : relance la recherche avant de fusionner.')
+        assert(parImage[c.empreinte], 'Preuve de comparaison absente : relancez la recherche avant de fusionner.')
       end
     end
   end
@@ -35,7 +35,7 @@ function M.verifier(decisions, progression, empreintes, vignettes, cache, diagno
     if cache and valeur then cache:retenir(complete and 'G' or 'F', c.chemin, valeur) end
     if not valeur or valeur ~= c.empreinte then
       error('Le fichier a changé ou n’est plus lisible :\n' .. c.chemin
-        .. '\nFusion interrompue avant toute modification. Relance la recherche pour actualiser le rapport.', 0)
+        .. '\nFusion interrompue avant toute modification. Relancez la recherche pour actualiser le rapport.', 0)
     end
   end
   -- Miniatures recalculées par ImageMagick, sans le cache. parallele(elements, tache, legende), s'il est
@@ -91,7 +91,7 @@ function M.verifier(decisions, progression, empreintes, vignettes, cache, diagno
   end
   if echec then
     error('L’image ou son orientation a changé depuis la comparaison (' .. (causes[echec] or 'n’a pas pu être relue')
-      .. ') :\n' .. echec.chemin .. '\nFusion interrompue avant toute modification. Relance la recherche.', 0)
+      .. ') :\n' .. echec.chemin .. '\nFusion interrompue avant toute modification. Relancez la recherche.', 0)
   end
   return true
 end

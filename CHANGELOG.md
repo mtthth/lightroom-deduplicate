@@ -3,6 +3,10 @@
 Les numéros suivent le [versionnage sémantique](https://semver.org/lang/fr/) : majeure.mineure.correctif.
 Les versions privées antérieures étaient numérotées par date (jusqu'à 26.11.9).
 
+## 1.0.2
+
+- Vouvoiement dans toute l'interface (dialogues, messages, rapport HTML) et dans la documentation.
+
 ## 1.0.1
 
 - Python est aussi cherché dans le PATH, en dernier recours : une installation faite par un autre moyen que

@@ -45,8 +45,8 @@ function M.verifierAncien(catalogue, cles, lireOperations)
   end
   if enAttente then
     error('Une annulation (Ctrl+Z) faite avec la version précédente de Deduplicate n’a pas encore été reportée '
-      .. 'dans l’historique des photos écartées. Réinstalle la version 26.11.9 le temps qu’elle se synchronise '
-      .. '(quelques secondes, Lightroom ouvert), puis reviens à cette version.', 0)
+      .. 'dans l’historique des photos écartées. Réinstallez la version 26.11.9 le temps qu’elle se synchronise '
+      .. '(quelques secondes, Lightroom ouvert), puis revenez à cette version.', 0)
   end
   return true
 end

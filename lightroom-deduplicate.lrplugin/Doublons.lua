@@ -25,14 +25,14 @@
 -- plusieurs ont des copies virtuelles, quand une copie à retirer est publiée, quand une copie
 -- à retirer est retouchée ou a des copies virtuelles (c'est la copie réduite qui porte le travail),
 -- quand une version au nom de retouche (« _filtered »…) n'a pas la même image que les autres copies,
--- ou quand tu as déjà refusé de fusionner ces fichiers (voir Choix.lua).
+-- ou quand vous avez déjà refusé de fusionner ces fichiers (voir Choix.lua).
 
 local Epoques = require 'Epoques'
 local Similitude = require 'Similitude'
 
 local M = {}
 
--- Collection où la fusion rassemble les copies en trop, en attendant que tu les retires du catalogue.
+-- Collection où la fusion rassemble les copies en trop, en attendant que vous les retiriez du catalogue.
 M.COLLECTION = 'Doublons à retirer'
 
 -- Champs de texte recopiés sur la copie gardée quand elle n'a rien dans le champ (clés de
@@ -260,7 +260,7 @@ function M.decider(copies, refus)
   end
   local raison = nil
   if refus then
-    raison = 'tu as choisi de ne pas fusionner ces fichiers le ' .. refus.date
+    raison = 'vous avez choisi de ne pas fusionner ces fichiers le ' .. refus.date
   elseif erreurVideo then
     raison = 'impossible de vérifier les réglages vidéo : ' .. erreurVideo
   elseif nbRetouchees > 1 then

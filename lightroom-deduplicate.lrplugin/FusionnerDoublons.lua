@@ -108,13 +108,13 @@ local function demanderPortee(contexte, portee, magickDispo, reprise)
   local nb = #portee.photos
   if nb < 2 and reprise then
     local reponse = LrDialogs.confirm('Fusionner les doublons', 'Il faut au moins deux photos pour une nouvelle '
-      .. 'analyse : sélectionne-en plusieurs, ou affiche un dossier ou une collection.\n\n' .. reprise,
+      .. 'analyse : sélectionnez-en plusieurs, ou affichez un dossier ou une collection.\n\n' .. reprise,
       'Reprendre la dernière analyse')
     return reponse == 'ok' and { reprise = true } or nil
   end
   if nb < 2 then
     LrDialogs.message('Fusionner les doublons',
-      'Il faut au moins deux photos : sélectionne-en plusieurs, ou affiche un dossier ou une collection.', 'info')
+      'Il faut au moins deux photos : sélectionnez-en plusieurs, ou affichez un dossier ou une collection.', 'info')
     return nil
   end
   local f = LrView.osFactory()
@@ -130,8 +130,8 @@ local function demanderPortee(contexte, portee, magickDispo, reprise)
   end
   local texte = description .. '\n\nUne copie n’est trouvée que si ses doublons sont aussi dans ces photos. '
     .. 'Les vidéos sont incluses : seules les copies de fichiers identiques sont fusionnées automatiquement. '
-    .. 'Pour une version convertie ou recompressée, utilise la fusion de force. '
-    .. 'Rien n’est modifié avant que tu aies vu le rapport et confirmé.'
+    .. 'Pour une version convertie ou recompressée, utilisez la fusion de force. '
+    .. 'Rien n’est modifié avant que vous ayez vu le rapport et confirmé.'
     .. '\n\nLes images de mêmes dimensions peuvent aussi être comparées par miniature, même si leur nom et '
     .. 'leur date diffèrent : plus long à la première analyse, et toujours à vérifier dans le rapport.'
   if nb > GRANDE_PORTEE then
@@ -674,7 +674,7 @@ local function fusionner(catalogue, decisions, progression, diagnostic)
     for _, d in ipairs(decisions) do
       if aRetirer[d.garde.photo.localIdentifier] then
         error('La photo gardée est encore dans « ' .. Doublons.COLLECTION .. ' » ou « ' .. Rafales.COLLECTION
-          .. ' ». Ne retire aucune photo du catalogue.', 0)
+          .. ' ». Ne retirez aucune photo du catalogue.', 0)
       end
     end
   end)
@@ -721,9 +721,9 @@ local function ecrireRapportCsv(decisions, plan)
         table.insert(lignes, { i, 'retirer (forcé)', c.chemin, motifRetrait(c, f.garde) })
       end
     elseif exclues[i] then
-      table.insert(lignes, { i, 'non fusionné', d.garde.chemin, 'ton choix dans le rapport (mémorisé)' })
+      table.insert(lignes, { i, 'non fusionné', d.garde.chemin, 'votre choix dans le rapport (mémorisé)' })
       for _, c in ipairs(d.retirees) do
-        table.insert(lignes, { i, 'non fusionné', c.chemin, 'ton choix dans le rapport (mémorisé)' })
+        table.insert(lignes, { i, 'non fusionné', c.chemin, 'votre choix dans le rapport (mémorisé)' })
       end
     else
       local etat = d.versions and 'conservé à part' or d.aVerifier and 'à vérifier'
@@ -805,7 +805,7 @@ local function decrireChoix(plan, nbProposes)
   local nbRetirees = 0
   for _, d in ipairs(plan.aFusionner) do nbRetirees = nbRetirees + #d.retirees end
   local absorbes = #(plan.absorbes or {})
-  local lignes = { string.format('%d groupes proposés − %d que tu ne fusionnes pas%s + %d fusionnés de force = %d groupes '
+  local lignes = { string.format('%d groupes proposés − %d que vous ne fusionnez pas%s + %d fusionnés de force = %d groupes '
     .. 'à fusionner (%d copies mises dans « %s »).', nbProposes, #plan.exclues,
     absorbes > 0 and string.format(' − %d repris dans un groupe forcé', absorbes) or '', #plan.forcees, #plan.aFusionner,
     nbRetirees, COLLECTION_DOUBLONS) }
@@ -816,8 +816,8 @@ local function decrireChoix(plan, nbProposes)
     end
     local suite = #plan.exclues > NUMEROS_AFFICHES and string.format(' et %d autres', #plan.exclues - NUMEROS_AFFICHES) or ''
     lignes[#lignes + 1] = '\nNe pas fusionner : groupes ' .. table.concat(numeros, ', ') .. suite .. '. Ce choix est mémorisé dans '
-      .. 'groupes-refuses.txt : ces fichiers resteront « à vérifier » aux prochaines analyses (supprime leur ligne, '
-      .. 'ou fusionne-les de force, pour revenir dessus).'
+      .. 'groupes-refuses.txt : ces fichiers resteront « à vérifier » aux prochaines analyses (supprimez leur ligne, '
+      .. 'ou fusionnez-les de force, pour revenir dessus).'
   end
   local nonDetailles, avertissementsCaches = 0, 0
   for i, d in ipairs(plan.forcees) do
@@ -838,7 +838,7 @@ local function decrireChoix(plan, nbProposes)
   end
   if nonDetailles > 0 then
     lignes[#lignes + 1] = string.format('\n… et %d autres groupes fusionnés de force, non détaillés ici (%d remarques '
-      .. 'de plus, du même genre). Le rapport montre chaque groupe ; doublons.csv en garde le détail dès que tu confirmes.',
+      .. 'de plus, du même genre). Le rapport montre chaque groupe ; doublons.csv en garde le détail dès que vous confirmez.',
       nonDetailles, avertissementsCaches)
   end
   if #plan.forcees > 0 then
@@ -1047,8 +1047,8 @@ LrTasks.startAsyncTask(function()
           '%s : %d groupes de copies d’une même photo, %d copies en trop%s.\n\n'
           .. 'Pour chaque groupe, le rapport montre la copie gardée (la plus grande image ; à image identique, la '
           .. 'retouchée, puis la mieux rangée), ce qui est retiré, et ce qui change dans les collections et les '
-          .. 'métadonnées. Clique sur « Ouvrir le rapport » (il s’ouvre dans ton navigateur) : rien n’est modifié '
-          .. 'tant que tu ne cliques pas sur « Fusionner ». Les copies en trop sont rassemblées dans la collection '
+          .. 'métadonnées. Cliquez sur « Ouvrir le rapport » (il s’ouvre dans votre navigateur) : rien n’est modifié '
+          .. 'tant que vous ne cliquez pas sur « Fusionner ». Les copies en trop sont rassemblées dans la collection '
           .. '« %s », à retirer ensuite du catalogue. Leurs chemins et dates sont mémorisés dans %s pour que '
           .. '« Recréer les albums » continue de les ignorer après vidage de la collection.',
           decrirePortee(portee):gsub('^les', 'Parmi les'), #aFusionner, nbRetirees,
@@ -1057,7 +1057,7 @@ LrTasks.startAsyncTask(function()
         if nbAVerifier > 0 then
           message = message .. string.format('\n\n%d groupes à vérifier (plusieurs copies retouchées, version '
             .. '« _filtered » ou « -Modifier », copie réduite retouchée…%s) restent tels quels.', nbAVerifier,
-            nbRefuses > 0 and string.format(', dont %d que tu as choisi de ne pas fusionner', nbRefuses) or '')
+            nbRefuses > 0 and string.format(', dont %d que vous avez choisi de ne pas fusionner', nbRefuses) or '')
         end
         if nbVersions > 0 then
           message = message .. string.format('\n%d groupes de photos de même nom d’origine et même date ont des '
@@ -1072,8 +1072,8 @@ LrTasks.startAsyncTask(function()
         -- Sans groupe proposé ni groupe « à vérifier », il n'y a rien à choisir : la boîte se ferme simplement.
         local choisissable = #aFusionner > 0 or nbAVerifier > 0 or nbVersions > 0
         if choisissable then
-          message = message .. '\n\nDans le rapport, coche « Ne pas fusionner » pour écarter un groupe, ou « Fusionner de '
-            .. 'force » pour un groupe à vérifier, puis clique sur « Copier le code » et colle-le ci-dessous. '
+          message = message .. '\n\nDans le rapport, cochez « Ne pas fusionner » pour écarter un groupe, ou « Fusionner de '
+            .. 'force » pour un groupe à vérifier, puis cliquez sur « Copier le code » et collez-le ci-dessous. '
             .. 'Sans code, le rapport est appliqué tel quel.'
         end
         DerniereAnalyse.memoriser { catalogue = catalogue:getPath(), date = dateDuRapport(), portee = decrirePortee(portee),
@@ -1133,7 +1133,7 @@ LrTasks.startAsyncTask(function()
           finAnalyse('perimee'); issue = 'reprise_perimee'
           LrDialogs.message('Analyse à relancer', 'Le catalogue a changé depuis l’analyse ' .. memoire.identifiant
             .. ' (photo déplacée ou retirée, retouche, copie gardée, groupe refusé ou déjà fusionné) : son rapport ne '
-            .. 'correspond plus. Relance l’analyse.\n\nRien n’a été modifié.', 'warning')
+            .. 'correspond plus. Relancez l’analyse.\n\nRien n’a été modifié.', 'warning')
           return nil
         end
         finAnalyse('ok', { groupes = #r.decisions, reprise = true })
@@ -1167,7 +1167,7 @@ LrTasks.startAsyncTask(function()
           },
         }
         if choisissable then
-          colonne[#colonne + 1] = f:static_text { title = 'Code de tes choix (vide : le rapport tel quel) :' }
+          colonne[#colonne + 1] = f:static_text { title = 'Code de vos choix (vide : le rapport tel quel) :' }
           colonne[#colonne + 1] = f:edit_field { value = LrView.bind('code'), width = 680, immediate = true }
         end
         local finAttente = diagnostic:debutEtape('attente_decision_utilisateur')
@@ -1189,13 +1189,13 @@ LrTasks.startAsyncTask(function()
           if #plan.exclues + #plan.forcees == 0 then
             if #plan.aFusionner > 0 then break end
             LrDialogs.message('Rien à fusionner', 'Aucun groupe n’est proposé à la fusion. Pour fusionner un groupe '
-              .. '« à vérifier », coche « Fusionner de force » dans le rapport, puis colle le code.', 'info')
+              .. '« à vérifier », cochez « Fusionner de force » dans le rapport, puis collez le code.', 'info')
           else
             local texte = decrireChoix(plan, #aFusionner)
             local _, nbLignes = texte:gsub('\n', '')
             local finConfirmation = diagnostic:debutEtape('attente_confirmation_choix')
             local reponse = LrDialogs.presentModalDialog {
-              title = 'Confirmer tes choix',
+              title = 'Confirmer vos choix',
               contents = f:scrolled_view {
                 width = 680, height = 400,
                 f:static_text { title = texte, width = 640, height_in_lines = math.min(1500, math.max(20, nbLignes + math.ceil(#texte / 90))) },
@@ -1239,7 +1239,7 @@ LrTasks.startAsyncTask(function()
       local bilan = string.format(
         '%d groupes fusionnés sur %d. Les copies en trop sont dans la collection « %s ». '
         .. '\n\nElles restent visibles dans les dossiers tant qu’elles sont au catalogue. Pour terminer le retrait, '
-        .. 'sélectionne uniquement les copies écartées dans « Catalogue → Toutes les photos », puis Suppr → « Retirer ».',
+        .. 'sélectionnez uniquement les copies écartées dans « Catalogue → Toutes les photos », puis Suppr → « Retirer ».',
         nbFusionnes, #aFusionner, COLLECTION_DOUBLONS)
         .. '\n\nCtrl+Z annule cette fusion complète, y compris l’historique des exclusions.'
       if #plan.forcees > 0 then
