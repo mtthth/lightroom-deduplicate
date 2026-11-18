@@ -1,6 +1,24 @@
 -- Exécute la fonction de recherche de production avec le vrai cache SQLite/Python,
 -- sur des fichiers de test et des lecteurs d'image déterministes.
-local fs = require 'lfs'
+-- LuaFileSystem est fourni avec texlua ; un Lua standard (intégration continue) passe par le système.
+local ok, fs = pcall(require, 'lfs')
+if not ok then
+  local function windows(p) return '"' .. p:gsub('/', '\\') .. '"' end
+  local function existe(p) return os.rename(p, p) ~= nil end
+  fs = {
+    attributes = function(p, champ)
+      if not existe(p) then return nil end
+      -- Sous Windows, io.open échoue sur un dossier.
+      local f = io.open(p, 'rb')
+      local mode = f and 'file' or 'directory'
+      if f then f:close() end
+      if champ then return mode end
+      return { mode = mode }
+    end,
+    mkdir = function(p) return os.execute('mkdir ' .. windows(p)) end,
+    rmdir = function(p) return os.execute('rmdir ' .. windows(p)) end,
+  }
+end
 local racine, temp = assert(arg[1]), assert(arg[2])
 local python = arg[3] or 'C:/Python314/python.exe'
 local dossier = racine .. '/tests/cache-integration'

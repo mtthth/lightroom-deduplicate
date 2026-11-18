@@ -1,6 +1,6 @@
 -- Python 3.12 ou plus récent (Windows), nécessaire pour lire le catalogue en lecture seule et pour le
 -- cache des analyses. Emplacements cherchés, du plus récent au plus ancien : installation python.org
--- pour l'utilisateur (par défaut), pour tous les utilisateurs, puis C:\Python3xx.
+-- pour l'utilisateur (par défaut), pour tous les utilisateurs, C:\Python3xx, puis le PATH.
 local LrFileUtils = import 'LrFileUtils'
 local LrPathUtils = import 'LrPathUtils'
 local LrTasks = import 'LrTasks'
@@ -28,6 +28,11 @@ function M.chemin()
   if ok and home then dossiers.utilisateur = LrPathUtils.child(home, 'AppData\\Local\\Programs\\Python') end
   for _, p in ipairs(M.candidats(dossiers)) do
     if LrFileUtils.exists(p) == 'file' then trouve = p; return p end
+  end
+  -- En dernier recours, le PATH (autre installeur, environnement virtuel…), sans l'alias du Microsoft Store.
+  for dossier in (os.getenv('PATH') or ''):gmatch('[^;]+') do
+    local p = LrPathUtils.child(dossier, 'python.exe')
+    if not dossier:lower():find('windowsapps', 1, true) and LrFileUtils.exists(p) == 'file' then trouve = p; return p end
   end
   return nil
 end
