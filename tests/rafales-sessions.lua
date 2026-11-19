@@ -11,7 +11,9 @@ assert(R.collectionProtege({ 'Sessions - Google Photos' }, 'vacances'))
 assert(not R.collectionProtege({ 'Racine', 'Vacances' }, ' vacances '))
 assert(R.collectionProtege({ 'Albums - Google Photos' }, 'sessions'))
 assert(R.collectionProtege({ 'Outillage' }, 'sessions'))
-assert(not R.collectionProtege({ Noms.ENSEMBLE_EPOQUES }, ''))
+assert(not R.collectionProtege({ Noms.ENSEMBLE_SESSIONS }, ''))
+assert(not R.collectionProtege({ Noms.ANCIEN_ENSEMBLE_SESSIONS }, ''))
+assert(not R.collectionProtege({ Noms.ENSEMBLE_SESSIONS, '2006', '2006-10-15 – MMB' }, 'autre mot'))
 
 local function cadre(raisons)
   local c = { fichiers = { { raisons = raisons } } }

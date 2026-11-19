@@ -10,6 +10,8 @@ Les versions privées antérieures étaient numérotées par date (jusqu'à 26.1
   vérifie désormais d'abord que les fichiers n'ont pas changé depuis le chargement, et sinon demande de recharger le
   module (Gestionnaire de modules externes) ou de redémarrer Lightroom. Ce contrôle vaut à partir de la mise à jour
   suivante : pour passer à la 1.1.4, rechargez le module.
+- L'ensemble « Google Photos - époques » s'appelle désormais « Google Photos - sessions » (Albums Google Photos 1.1.0).
+  Les deux noms restent exclus des protections des rafales, même si le mot « sessions » est retiré des réglages.
 
 ## 1.1.3
 

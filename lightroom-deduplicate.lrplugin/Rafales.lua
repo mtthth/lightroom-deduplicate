@@ -37,9 +37,10 @@ M.ECART_SECONDES = 1     -- écart maximal entre deux cadres d'une rafale
 M.ECART_NUMERO = 3       -- écart maximal entre deux numéros de fichier (des cadres ont pu être supprimés)
 M.MIN_CADRES = 3
 
--- Ensembles ou collections de premier niveau qui ne protègent pas une photo : les époques sont
+-- Ensembles ou collections de premier niveau qui ne protègent pas une photo : les sessions sont
 -- calculées automatiquement, les deux autres sont des corbeilles. Les autres exceptions sont réglables.
-M.SANS_PROTECTION = { [Noms.ENSEMBLE_EPOQUES] = true, [Doublons.COLLECTION] = true, [M.COLLECTION] = true }
+M.SANS_PROTECTION = { [Noms.ENSEMBLE_SESSIONS] = true, [Noms.ANCIEN_ENSEMBLE_SESSIONS] = true,
+  [Doublons.COLLECTION] = true, [M.COLLECTION] = true }
 M.MOT_COLLECTION_DEFAUT = 'sessions'
 
 -- Le mot est recherché dans chaque élément du chemin, sans motif Lua ni casse ASCII.

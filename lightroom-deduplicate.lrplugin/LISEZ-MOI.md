@@ -283,8 +283,8 @@ Affichez un dossier ou une collection, puis lancez la commande (réglages : 1 ca
   qui ont une version retouchée dans un éditeur externe.
 - Les collections dont le nom ou un ensemble parent contient « sessions » ne protègent pas les photos, sans distinction
   de casse. Ce texte est modifiable dans **Fichier > Gestionnaire de modules externes > Deduplicate** ; laissez-le vide
-  pour désactiver cette exception. Les époques et les collections à retirer restent aussi exclues des protections.
-  Les autres protections restent actives. Si les photos mises de côté sont ensuite retirées du catalogue, elles
+  pour désactiver cette exception. L'ensemble « Google Photos - sessions » (anciennement « époques ») et les
+  collections à retirer restent aussi exclus des protections. Les autres protections restent actives. Si les photos mises de côté sont ensuite retirées du catalogue, elles
   disparaissent aussi de leurs collections.
 - Les autres cadres (tous leurs fichiers) vont dans la collection « Rafales à retirer » après confirmation. Avant
   confirmation, « Voir le rapport » ouvre `rapport-rafales/index.html`, avec les miniatures, les décisions et les
