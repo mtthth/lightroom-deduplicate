@@ -50,6 +50,8 @@ local LrPathUtils = import 'LrPathUtils'
 local LrProgressScope = import 'LrProgressScope'
 local LrTasks = import 'LrTasks'
 local LrView = import 'LrView'
+-- Modules en mémoire périmés après une mise à jour : demander de recharger le module (Fraicheur.lua).
+if not dofile(LrPathUtils.child(_PLUGIN.path, 'Fraicheur.lua')).verifier() then return end
 
 -- Ces lecteurs sans état doivent suivre les mises à jour du module même si Lightroom
 -- conserve d'anciens require() pendant qu'une tâche précédente termine son annulation.

@@ -30,6 +30,8 @@ local LrPrefs = import 'LrPrefs'
 local LrProgressScope = import 'LrProgressScope'
 local LrTasks = import 'LrTasks'
 local LrView = import 'LrView'
+-- Modules en mémoire périmés après une mise à jour : demander de recharger le module (Fraicheur.lua).
+if not dofile(LrPathUtils.child(_PLUGIN.path, 'Fraicheur.lua')).verifier() then return end
 
 local Catalogue = require 'Catalogue'
 local Csv = require 'Csv'

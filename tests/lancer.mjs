@@ -40,7 +40,7 @@ if (!lua || !python) {
 const suitesLua = [
   'catalogue', 'cas-prioritaires', 'choix', 'collections-rapides', 'copies-virtuelles', 'historique-commun',
   'journal-annulable', 'libelles-restauration', 'libelles-personnalises', 'retouches-video', 'rafales-sessions', 'rapport-doublons', 'rapport-rafales',
-  'revalidation-fichiers', 'migration', 'langue', 'sauvegarde-collections', 'trace-lectures', 'vignettes-ping', 'recherche-cache', 'empreintes-jpeg',
+  'revalidation-fichiers', 'migration', 'langue', 'sauvegarde-collections', 'trace-lectures', 'vignettes-ping', 'recherche-cache', 'empreintes-jpeg', 'fraicheur',
 ];
 const suitesPython = ['test_cache_analyses', 'test_collections_readonly', 'test_traductions'];
 const scratch = mkdtempSync(path.join(os.tmpdir(), 'deduplicate-tests-'));

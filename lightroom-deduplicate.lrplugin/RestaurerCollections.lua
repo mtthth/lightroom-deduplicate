@@ -6,6 +6,8 @@ local LrTasks = import 'LrTasks'
 local LrBinding = import 'LrBinding'
 local LrFunctionContext = import 'LrFunctionContext'
 local LrView = import 'LrView'
+-- Modules en mémoire périmés après une mise à jour : demander de recharger le module (Fraicheur.lua).
+if not dofile(LrPathUtils.child(_PLUGIN.path, 'Fraicheur.lua')).verifier() then return end
 local Sauvegarde = dofile(LrPathUtils.child(_PLUGIN.path, 'SauvegardeCollections.lua'))
 local Annulation = require 'Annulation'
 local Rafales = require 'Rafales'

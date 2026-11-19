@@ -3,6 +3,14 @@
 Les numéros suivent le [versionnage sémantique](https://semver.org/lang/fr/) : majeure.mineure.correctif.
 Les versions privées antérieures étaient numérotées par date (jusqu'à 26.11.9).
 
+## 1.1.4
+
+- Après une mise à jour des fichiers sans rechargement du module, Lightroom gardait une partie des anciens modules
+  en mémoire : la recherche pouvait échouer en cours de route (« attempt to call field 'cleNom' »). Chaque commande
+  vérifie désormais d'abord que les fichiers n'ont pas changé depuis le chargement, et sinon demande de recharger le
+  module (Gestionnaire de modules externes) ou de redémarrer Lightroom. Ce contrôle vaut à partir de la mise à jour
+  suivante : pour passer à la 1.1.4, rechargez le module.
+
 ## 1.1.3
 
 - Copies renommées (Google Photos, exports) : « 20171228_192040_p1070693 » et « 20171228-192040-p1070693 », ou un
