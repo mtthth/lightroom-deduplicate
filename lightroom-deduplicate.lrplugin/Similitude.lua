@@ -164,6 +164,9 @@ end
 -- plus grande (pixels, puis taille du fichier), les autres sont des versions plus petites ou
 -- recompressées d'elle. Les classes sans miniature, retouchées ou différentes restent seules.
 -- Chaque classe est comparée à la plus grande seulement : pas d'enchaînement de ressemblances.
+-- compatibles(a, b), facultatif : faux si deux classes ne peuvent pas être la même image quelle que
+-- soit leur ressemblance (cadres voisins d'une rafale) ; une classe n'entre alors dans un groupe que
+-- si elle est compatible avec chacune de ses classes.
 --
 -- Les images de mêmes dimensions peuvent se compter par milliers : comparer chacune à toutes les
 -- autres serait trop long. memeVue exige un écart de moyenne d'au plus ECART_CANAL_MAX sur chaque
@@ -175,7 +178,7 @@ local function moyenne(signature)
   return somme / #signature
 end
 
-function M.regrouper(classes)
+function M.regrouper(classes, compatibles)
   local ordre = {}
   for i, c in ipairs(classes) do ordre[i] = c end
   table.sort(ordre, function(a, b)
@@ -214,8 +217,16 @@ function M.regrouper(classes)
         -- Même ordre qu'une comparaison complète : de la plus grande à la plus petite.
         table.sort(candidates, function(a, b) return rang[a] < rang[b] end)
         for _, c in ipairs(candidates) do
-          placee[c] = true
-          groupe[#groupe + 1] = c
+          local accepte = true
+          if compatibles then
+            for _, membre in ipairs(groupe) do
+              if not compatibles(membre, c) then accepte = false; break end
+            end
+          end
+          if accepte then
+            placee[c] = true
+            groupe[#groupe + 1] = c
+          end
         end
       end
       groupes[#groupes + 1] = groupe

@@ -161,6 +161,12 @@ assert(d.garde.id==31, 'ordre des copies indifférent')
 local grandeSansDate={id=32,chemin='D:/Archives/x.jpg',empreinte='g',pixels=2000,octets=10}
 local petiteDatee={id=33,chemin='D:/Archives/2021/x.jpg',empreinte='p',pixels=1000,octets=10,date=651700800}
 assert(D.decider({petiteDatee,grandeSansDate}).garde.id==32, 'la qualité passe avant la date')
+-- Copies renommées par Google Photos ou un export : séparateurs changés, nom doublé.
+assert(D.cleNom('D:/Noel/20171228_192040_p1070693.jpg') == D.cleNom('D:/manquantes/20171228-192040-p1070693.jpg'))
+assert(D.cleNom('a/20180609_203338_20180609_203338.jpg') == D.cleNom('b/20180609_203338.jpg'))
+assert(D.cleNom('a/20180609-203338-20180609_203338.jpg') == D.cleNom('b/20180609_203338-2.jpg'))
+assert(D.cleNom('a/P1250640.JPG') ~= D.cleNom('a/P1250641.JPG'))
+assert(D.cleNom('a/IMG_6527-2.JPG') == 'img6527')
 print('OK : mots-clés homonymes distincts, rafales intercalées séparées, variantes seulement proposées, copies déjà écartées, rapprochements par dimensions, copies tournées, versions au nom de retouche proposées.')
 
 

@@ -69,7 +69,7 @@ local source = assert(lire(_PLUGIN.path .. '/FusionnerDoublons.lua'))
 local debut = assert(source:find('local function classesDuGroupe', 1, true))
 local fin = assert(source:find('-- Complète les copies des groupes', debut, true))
 local preparer = assert(load('return function(Empreintes,Vignettes,LrTasks,LrDate,Doublons,Similitude,Parallele) '
-  .. 'local T = require("Langue").t; local PARALLELE=4; local function nomFichier(p) return p:match("[^/\\\\]+$") or p end; '
+  .. 'local T = require("Langue").t; local Rafales = require "Rafales"; local PARALLELE=4; local function nomFichier(p) return p:match("[^/\\\\]+$") or p end; '
   .. source:sub(debut, fin - 1) .. '\nreturn chercherGroupes end'))()
 local chercher = preparer(Empreintes, Vignettes, taches, { currentTime = os.clock }, require 'Doublons', require 'Similitude', require 'Parallele')
 local function lancer()

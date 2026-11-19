@@ -332,4 +332,18 @@ function M.lignesRapport(rafales)
   return lignes
 end
 
+-- Vrai si a et b ({ chemin, date }) sont deux prises distinctes d'une même série d'appareil : même
+-- dossier, même nom au numéro près (« P1250640 », « P1250641 »), numéros différents, prises à
+-- SERIE_SECONDES au plus l'une de l'autre. Le rapprochement des copies par dimensions s'en sert : des
+-- cadres voisins d'une rafale se ressemblent assez pour passer pour des copies recompressées.
+M.SERIE_SECONDES = 60
+function M.prisesDistinctes(a, b)
+  if not a.date or not b.date or math.abs(a.date - b.date) > M.SERIE_SECONDES then return false end
+  if dossierDe(a.chemin) ~= dossierDe(b.chemin) then return false end
+  local na, nb = M.numero(nomFichier(a.chemin)), M.numero(nomFichier(b.chemin))
+  if na < 0 or nb < 0 or na == nb then return false end
+  local motif = function(chemin) return (Doublons.nomDeBase(nomFichier(chemin)):gsub('%d+', '#')) end
+  return motif(a.chemin) == motif(b.chemin)
+end
+
 return M

@@ -3,6 +3,14 @@
 Les numéros suivent le [versionnage sémantique](https://semver.org/lang/fr/) : majeure.mineure.correctif.
 Les versions privées antérieures étaient numérotées par date (jusqu'à 26.11.9).
 
+## 1.1.3
+
+- Copies renommées (Google Photos, exports) : « 20171228_192040_p1070693 » et « 20171228-192040-p1070693 », ou un
+  nom doublé (« 20180609_203338_20180609_203338 »), sont reconnus comme le même nom d'origine. Leurs versions de
+  tailles différentes sont désormais comparées par miniature.
+- Rapprochement par mêmes dimensions : les cadres d'une rafale ou de prises successives (même dossier, même nom
+  au numéro près, prises à moins d'une minute d'intervalle) ne sont plus réunis comme des copies d'une même photo.
+
 ## 1.1.2
 
 - Une image dont ImageMagick ne peut pas faire de miniature n'est plus placée parmi les versions conservées à part :

@@ -10,7 +10,8 @@
 --    sont regroupés même si leurs noms ou leurs dates diffèrent.
 --    Vidéos incluses : identité du fichier entier, vérifiée intégralement pour les gros candidats.
 -- 2. Pour les photos dont l'empreinte diffère, recherche de variantes de même nom d'origine
---    (suffixes « -2 », « (2) », « -Modifier », « _filtered », DxO…) et de même date de prise de vue.
+--    (suffixes « -2 », « (2) », « -Modifier », « _filtered », DxO… ; séparateurs « - », « _ » et nom doublé
+--    ignorés, voir Doublons.cleNom) et de même date de prise de vue.
 -- 3. Ces variantes sont comparées par une miniature 16 × 16 (ImageMagick, voir Vignettes.lua et
 --    Similitude.lua) : si elles montrent la même vue, l'une est une copie réduite ou recompressée.
 --    Une version dont le nom annonce une retouche et qui montre la même vue est proposée dans le
@@ -219,6 +220,18 @@ local function classesDuGroupe(groupe)
   return classes
 end
 
+-- Rapprochement par dimensions : deux images dont une copie au moins est un cadre voisin de l'autre dans
+-- une même série (rafale, prises successives) ne sont pas la même photo, même si leurs miniatures se
+-- ressemblent.
+local function classesCompatibles(a, b)
+  for _, x in ipairs(a.copies) do
+    for _, y in ipairs(b.copies) do
+      if Rafales.prisesDistinctes(x, y) then return false end
+    end
+  end
+  return true
+end
+
 local function calculerMiniature(classe, cache)
   local chemin = classe.copies[1].chemin
   local vignette = cache:obtenir('S', chemin)
@@ -331,7 +344,7 @@ local function chercherGroupes(copies, progression, diagnostic, cache, options)
     -- Une image du clip ne suffit pas à comparer sa durée, ses autres images et sa bande-son.
     if c.video then return nil end
     local extension = (c.chemin:match('%.([^%./\\]*)$') or ''):lower()
-    return Doublons.nomDeBase(c.chemin) .. '.' .. extension .. '|'
+    return Doublons.cleNom(c.chemin) .. '.' .. extension .. '|'
       .. (c.date and string.format('%d', math.floor(c.date)) or '')
   end)
   local analyses = {}
@@ -346,6 +359,8 @@ local function chercherGroupes(copies, progression, diagnostic, cache, options)
   -- Les images aux dimensions exactement identiques (à la rotation près) sont donc aussi comparées par
   -- miniature. Ces rapprochements restent « à vérifier » (images d'empreintes différentes) et ne
   -- sont jamais listés comme versions distinctes : des dimensions communes ne disent rien d'autre.
+  -- Les cadres d'une même série (même dossier, numéros différents, prises à la minute près) n'y sont
+  -- jamais réunis : ce sont des prises distinctes (voir Rafales.prisesDistinctes).
   local nbParDimensions = 0
   if options.memesDimensions then
     local parDimensions = Doublons.grouper(copies, function(c)
@@ -409,7 +424,7 @@ local function chercherGroupes(copies, progression, diagnostic, cache, options)
   for _, a in ipairs(analyses) do
     local ensembles = {}
     if #a.classes >= 2 and magickDispo then
-      ensembles = Similitude.regrouper(a.classes)
+      ensembles = Similitude.regrouper(a.classes, a.parDimensions and classesCompatibles or nil)
     else
       for i, classe in ipairs(a.classes) do ensembles[i] = { classe } end
     end

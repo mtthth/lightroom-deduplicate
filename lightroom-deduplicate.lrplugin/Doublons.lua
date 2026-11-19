@@ -80,6 +80,16 @@ function M.nomDeBase(nom)
   return base
 end
 
+-- Clé de recherche des copies d'un même fichier : nomDeBase sans séparateurs (espaces, « - », « _ », « . »),
+-- et un nom répété une seule fois. Google Photos et les exports renomment « 20171228_192040_p1070693 »
+-- en « 20171228-192040-p1070693 », ou doublent le nom : « 20180609_203338_20180609_203338 ».
+function M.cleNom(nom)
+  local cle = M.nomDeBase(nom):gsub('[%s%-_%.]+', '')
+  local moitie = math.floor(#cle / 2)
+  if moitie > 0 and #cle % 2 == 0 and cle:sub(1, moitie) == cle:sub(moitie + 1) then cle = cle:sub(1, moitie) end
+  return cle
+end
+
 -- Nombre de caractères de suffixe (copie, retouche) du nom : 0 pour le fichier d'origine.
 function M.longueurSuffixe(nom)
   local fichier = (nom:match('[^/\\]+$') or nom):lower():gsub('%.[^%.]*$', '')
@@ -327,7 +337,7 @@ function M.decider(copies, refus)
   if not raison and not memeImage then
     local memeNom = true
     for _, c in ipairs(copies) do
-      if M.nomDeBase(c.chemin) ~= M.nomDeBase(copies[1].chemin) then memeNom = false end
+      if M.cleNom(c.chemin) ~= M.cleNom(copies[1].chemin) then memeNom = false end
     end
     raison = memeNom and T('images seulement ressemblantes : vérifier les détails avant de fusionner',
         'images only look alike: check the details before merging')
